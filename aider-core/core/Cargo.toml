@@ -1,0 +1,27 @@
+[package]
+name = "aider-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+reqwest = { version = "0.11", features = ["json", "gzip", "brotli", "stream"] }
+gix = "0.61"
+tree-sitter = "0.20"
+tree-sitter-highlight = "0.20"
+serde = { version = "1", features = ["derive"] }
+directories = "5"
+ignore = "0.4"
+walkdir = "2"
+notify = "6"
+tera = "1"
+askama = "0.12"
+rusqlite = { version = "0.30", features = ["bundled"] }
+moka = { version = "0.11", features = ["sync"] }
+zstd = "0.12"
+brotli = "3.3"
+tracing = "0.1"
+thiserror = "1"
+anyhow = "1"
+llama-rs = "0.0.0"
+ollama-rs = "0.3"
