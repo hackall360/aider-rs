@@ -1,4 +1,5 @@
 use reqwest;
+use std::process::Command;
 use thiserror::Error;
 use tracing::info;
 
@@ -6,6 +7,8 @@ use tracing::info;
 pub enum CoreError {
     #[error("http error: {0}")]
     Http(#[from] reqwest::Error),
+    #[error("git error: {0}")]
+    Git(String),
 }
 
 pub async fn fetch(url: &str) -> Result<String, CoreError> {
@@ -16,4 +19,20 @@ pub async fn fetch(url: &str) -> Result<String, CoreError> {
 
 pub fn ping() -> &'static str {
     "pong"
+}
+
+pub fn git(args: Vec<String>) -> Result<String, CoreError> {
+    let output = Command::new("git")
+        .args(&args)
+        .output()
+        .map_err(|e| CoreError::Git(e.to_string()))?;
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
+pub fn repo_map() -> String {
+    "repo map not implemented".to_string()
+}
+
+pub fn llm(prompt: String) -> String {
+    format!("LLM response to: {prompt}")
 }
