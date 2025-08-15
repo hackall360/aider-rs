@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/aider-rs/go-shell/internal/config"
+	"github.com/aider-rs/go-shell/internal/resources"
 	"github.com/aider-rs/go-shell/internal/sidecar"
 	"github.com/aider-rs/go-shell/internal/tui"
 )
@@ -24,6 +25,11 @@ var rootCmd = &cobra.Command{
 		}
 		defer db.Close()
 		defer logger.Sync()
+
+		// Demonstrate loading shared resources.
+		if _, err := resources.LoadJSON("../resources/model-metadata.json"); err != nil {
+			logger.Debug("resource load", zap.Error(err))
+		}
 
 		ctx := context.Background()
 		if msg, err := sidecar.Ping(ctx); err == nil {
