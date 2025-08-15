@@ -1,0 +1,11 @@
+[package]
+name = "flutter_bridge"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.11.1"
+aider-core = { path = "../../aider-core/core" }
