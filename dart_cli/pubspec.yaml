@@ -1,0 +1,20 @@
+name: dart_cli
+description: Command-line interface for the Aider project.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  args: ^2.4.2
+  io: ^1.0.4
+  process_run: ^0.12.4
+  dio: ^5.4.0
+  web_socket_channel: ^2.4.0
+  mustache_template: ^2.0.0
+  toml: ^0.15.0
+  xdg_directories: ^1.0.3
+  path: ^1.8.3
+
+dev_dependencies:
+  lints: ^5.0.0

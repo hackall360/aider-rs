@@ -17,3 +17,6 @@ aider/_version.py
 .gitattributes
 tmp.benchmarks/
 .docker_bash_history
+# Dart
+**/.dart_tool/
+**/pubspec.lock
