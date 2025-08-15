@@ -4,6 +4,7 @@ mod history;
 mod prompts;
 mod repo;
 mod repomap;
+mod resources;
 mod settings;
 mod watch;
 
@@ -56,9 +57,13 @@ fn main() -> Result<()> {
         println!("{}", rendered);
     }
 
+    // Demonstrate loading resources in multiple formats.
+    let _meta = resources::load_json("resources/model-metadata.json")?;
+    let _settings = resources::load_yaml("resources/model-settings.yml")?;
+    let _prompt = resources::load_prompt("resources/prompts/welcome.mustache")?;
+
     // Start file watching in the background.
     let _watcher = watch::watch(&std::env::current_dir()?)?;
 
     Ok(())
 }
-

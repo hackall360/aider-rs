@@ -38,4 +38,9 @@ Future<void> main(List<String> arguments) async {
 
   final renderer = TemplateRenderer('Hello {{name}}');
   stdout.writeln(renderer.render({'name': 'World'}));
+
+  // Demonstrate loading shared resources.
+  await loadJson('../resources/model-metadata.json');
+  await loadYaml('../resources/model-settings.yml');
+  await loadPrompt('../resources/prompts/welcome.mustache');
 }
