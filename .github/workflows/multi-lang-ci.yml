@@ -1,0 +1,48 @@
+name: multi-lang-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aider-cli
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          profile: minimal
+      - run: cargo fmt -- --check
+      - run: cargo clippy -- -D warnings
+      - run: cargo test
+
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go-shell
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: go vet ./...
+      - run: go test ./...
+
+  dart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart analyze dart_cli
+      - run: dart test dart_cli
+      - run: flutter analyze flutter_app
+      - run: flutter test flutter_app
