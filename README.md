@@ -121,6 +121,16 @@ aider --model o3-mini --api-key openai=<key>
 
 See the [installation instructions](https://aider.chat/docs/install.html) and [usage documentation](https://aider.chat/docs/usage.html) for more details.
 
+### Language Toolchains
+
+This repository includes components written in Rust, Go and Dart. The helper script below installs the required toolchains on Windows and Linux environments:
+
+```
+go run scripts/install.go
+```
+
+The script downloads official installers for each language and avoids any Python-only dependencies.
+
 ## More Information
 
 ### Documentation
