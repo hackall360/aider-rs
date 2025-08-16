@@ -131,6 +131,7 @@ See the [installation instructions](https://aider.chat/docs/install.html) and [u
 - [Configuration Options](https://aider.chat/docs/config.html)
 - [Troubleshooting](https://aider.chat/docs/troubleshooting.html)
 - [FAQ](https://aider.chat/docs/faq.html)
+- [Migration Guide](MIGRATION.md)
 
 ### Community & Resources
 - [LLM Leaderboards](https://aider.chat/docs/leaderboards/)

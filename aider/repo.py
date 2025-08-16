@@ -1,5 +1,6 @@
 import contextlib
 import os
+import subprocess
 import time
 from pathlib import Path, PurePosixPath
 
@@ -431,6 +432,18 @@ class GitRepo:
         return diffs
 
     def get_tracked_files(self):
+        if os.getenv("AIDER_USE_RUST"):
+            try:
+                result = subprocess.run(
+                    ["git_sidecar"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                return result.stdout.splitlines()
+            except Exception:
+                pass
+
         if not self.repo:
             return []
 

@@ -1,5 +1,11 @@
 # Release history
 
+### Unreleased
+
+- Started Python to Rust migration. Added `git_sidecar` binary and optional
+  Python shim activated with `AIDER_USE_RUST`. Migration status tracked in
+  `MIGRATION.md`.
+
 ### Aider v0.86.0
 
 - Expanded GPT-5 model support across family variants and providers (OpenAI, Azure, OpenRouter), including dated and chat/mini/nano variants.
