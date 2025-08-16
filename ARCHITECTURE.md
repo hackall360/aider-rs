@@ -35,3 +35,11 @@ sequenceDiagram
 
 The diagrams above depict how front-ends communicate with the Rust core through the sidecar and how data flows to shared resources.
 
+## Python to Rust migration
+
+Legacy Python utilities are being replaced with Rust implementations.  The first
+step introduces a small `git_sidecar` binary that mirrors portions of the
+`GitRepo` helper.  Python code can opt into the Rust path by setting
+`AIDER_USE_RUST=1`.  Progress and upcoming milestones are documented in
+[`MIGRATION.md`](MIGRATION.md).
+
