@@ -6,16 +6,10 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
 /// Persistent user settings stored as TOML or YAML.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Settings {
     /// Mirror of the `--verbose` flag.
     pub verbose: bool,
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Self { verbose: false }
-    }
 }
 
 impl Settings {
@@ -67,7 +61,5 @@ impl Settings {
 }
 
 fn default_config_path() -> Option<PathBuf> {
-    ProjectDirs::from("com", "aider", "aider-cli")
-        .map(|dir| dir.config_dir().join("settings.toml"))
+    ProjectDirs::from("com", "aider", "aider-cli").map(|dir| dir.config_dir().join("settings.toml"))
 }
-

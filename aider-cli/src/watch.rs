@@ -8,17 +8,23 @@ use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 /// Handle for a running watcher returning filtered events.
 pub struct WatcherHandle {
     _watcher: RecommendedWatcher,
+    #[allow(dead_code)]
     pub rx: Receiver<Result<Event, notify::Error>>,
+    #[allow(dead_code)]
     gitignore: Gitignore,
 }
 
 impl WatcherHandle {
     /// Wait for the next path change that isn't ignored.
+    #[allow(dead_code)]
     pub fn next_path(&self) -> Option<PathBuf> {
         while let Ok(event) = self.rx.recv() {
             if let Ok(event) = event {
                 for path in event.paths {
-                    if !self.gitignore.matched_path_or_any_parents(&path, path.is_dir()).is_ignore()
+                    if !self
+                        .gitignore
+                        .matched_path_or_any_parents(&path, path.is_dir())
+                        .is_ignore()
                     {
                         return Some(path);
                     }
@@ -45,4 +51,3 @@ pub fn watch(path: &Path) -> Result<WatcherHandle> {
         gitignore,
     })
 }
-

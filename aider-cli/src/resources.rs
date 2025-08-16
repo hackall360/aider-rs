@@ -19,6 +19,7 @@ pub fn load_yaml<P: AsRef<Path>>(path: P) -> Result<YamlValue> {
 }
 
 /// Load a TOML resource from disk.
+#[allow(dead_code)]
 pub fn load_toml<P: AsRef<Path>>(path: P) -> Result<TomlValue> {
     let data = fs::read_to_string(path)?;
     Ok(toml::from_str(&data)?)
