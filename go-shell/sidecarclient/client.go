@@ -126,3 +126,46 @@ func (c *Client) DialWS(ctx context.Context, path string) (*websocket.Conn, *htt
 	}
 	return websocket.DefaultDialer.DialContext(ctx, url, h)
 }
+
+func (c *Client) Command(ctx context.Context, cmd string, args []string) (<-chan string, <-chan int, error) {
+	conn, _, err := c.DialWS(ctx, "/command")
+	if err != nil {
+		return nil, nil, err
+	}
+	req := map[string]interface{}{"cmd": cmd, "args": args}
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := conn.WriteMessage(websocket.TextMessage, body); err != nil {
+		return nil, nil, err
+	}
+	outCh := make(chan string)
+	codeCh := make(chan int, 1)
+	go func() {
+		defer close(outCh)
+		defer close(codeCh)
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			var resp map[string]interface{}
+			if err := json.Unmarshal(msg, &resp); err != nil {
+				continue
+			}
+			switch resp["type"] {
+			case "stdout", "stderr":
+				if s, ok := resp["data"].(string); ok {
+					outCh <- s
+				}
+			case "exit":
+				if v, ok := resp["code"].(float64); ok {
+					codeCh <- int(v)
+				}
+				return
+			}
+		}
+	}()
+	return outCh, codeCh, nil
+}
