@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:toml/toml.dart';
-import 'package:yaml/yaml.dart';
+import 'package:yaml/yaml.dart' as yaml;
 
 Future<Map<String, dynamic>> loadJson(String path) async {
   final text = await File(path).readAsString();
@@ -11,7 +11,7 @@ Future<Map<String, dynamic>> loadJson(String path) async {
 
 Future<Map<String, dynamic>> loadYaml(String path) async {
   final text = await File(path).readAsString();
-  final doc = loadYaml(text);
+  final doc = yaml.loadYaml(text);
   return Map<String, dynamic>.from(doc as Map);
 }
 
