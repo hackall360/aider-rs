@@ -90,9 +90,26 @@ func (c *Client) RepoMap(ctx context.Context) (string, error) {
 	return out, err
 }
 
-func (c *Client) LLM(ctx context.Context, prompt string) (string, error) {
+type ChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type Model struct {
+	ID      string             `json:"id"`
+	Pricing map[string]float64 `json:"pricing"`
+}
+
+func (c *Client) LLMChat(ctx context.Context, msgs []ChatMessage) (string, error) {
 	var out string
-	err := c.call(ctx, "llm", map[string]string{"prompt": prompt}, &out)
+	params := map[string]interface{}{"messages": msgs}
+	err := c.call(ctx, "llm.chat", params, &out)
+	return out, err
+}
+
+func (c *Client) LLMModels(ctx context.Context) ([]Model, error) {
+	var out []Model
+	err := c.call(ctx, "llm.models", nil, &out)
 	return out, err
 }
 

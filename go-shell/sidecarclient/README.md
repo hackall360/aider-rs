@@ -28,8 +28,12 @@ func main() {
     if err != nil { panic(err) }
     fmt.Println(out)
 
-    resp, _ := client.LLM(ctx, "hello")
+    msg := []sidecarclient.ChatMessage{{Role: "user", Content: "hello"}}
+    resp, _ := client.LLMChat(ctx, msg)
     fmt.Println(resp)
+
+    models, _ := client.LLMModels(ctx)
+    fmt.Println(models)
 }
 ```
 
@@ -37,4 +41,5 @@ The JSON-RPC API supports the following methods:
 
 - `git` – execute git commands (`{ "args": ["status"] }`)
 - `repo_map` – return a repository map
-- `llm` – echo back a prompt (`{ "prompt": "hi" }`)
+- `llm.chat` – perform a chat completion (`{ "messages": [...] }`)
+- `llm.models` – list available LLM models

@@ -3,12 +3,17 @@ use std::process::Command;
 use thiserror::Error;
 use tracing::info;
 
+pub mod chat;
+pub mod models;
+
 #[derive(Error, Debug)]
 pub enum CoreError {
     #[error("http error: {0}")]
     Http(#[from] reqwest::Error),
     #[error("git error: {0}")]
     Git(String),
+    #[error("invalid input: {0}")]
+    Invalid(String),
 }
 
 pub async fn fetch(url: &str) -> Result<String, CoreError> {
