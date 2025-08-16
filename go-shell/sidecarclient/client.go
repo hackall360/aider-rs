@@ -96,6 +96,11 @@ func (c *Client) LLM(ctx context.Context, prompt string) (string, error) {
 	return out, err
 }
 
+func (c *Client) AnalyticsEvent(ctx context.Context, event string, props map[string]interface{}) error {
+	params := map[string]interface{}{"event": event, "properties": props}
+	return c.call(ctx, "analytics_event", params, nil)
+}
+
 func (c *Client) DialWS(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
 	url := c.wsURL + path
 	h := http.Header{}
