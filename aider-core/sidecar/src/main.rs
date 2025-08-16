@@ -1,3 +1,4 @@
+use aider_analytics::Analytics;
 use axum::{
     Json, Router,
     extract::State,
@@ -12,6 +13,7 @@ use tokio::net::TcpListener;
 #[derive(Clone)]
 struct AppState {
     token: Option<String>,
+    analytics: Analytics,
 }
 
 async fn ping() -> Json<&'static str> {
@@ -90,6 +92,26 @@ async fn rpc_handler(
             let ans = aider_core::llm(params.prompt);
             RpcResponse::result(Value::String(ans))
         }
+        "analytics_event" => {
+            #[derive(Deserialize)]
+            struct AnalyticsParams {
+                event: String,
+                properties: Value,
+            }
+            let params: AnalyticsParams =
+                serde_json::from_value(req.params).unwrap_or(AnalyticsParams {
+                    event: String::new(),
+                    properties: Value::Null,
+                });
+            match state
+                .analytics
+                .event(&params.event, params.properties)
+                .await
+            {
+                Ok(_) => RpcResponse::result(Value::Bool(true)),
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
+        }
         _ => RpcResponse::error("unknown method".into()),
     };
 
@@ -99,7 +121,11 @@ async fn rpc_handler(
 #[tokio::main]
 async fn main() {
     let token = env::var("SIDECAR_TOKEN").ok();
-    let state = AppState { token };
+    let host = env::var("POSTHOG_HOST").unwrap_or_else(|_| "https://us.i.posthog.com".into());
+    let api_key = env::var("POSTHOG_PROJECT_API_KEY")
+        .unwrap_or_else(|_| "phc_99T7muzafUMMZX15H8XePbMSreEUzahHbtWjy3l5Qbv".into());
+    let analytics = Analytics::new(&host, &api_key);
+    let state = AppState { token, analytics };
     let app = Router::new()
         .route("/ping", get(ping))
         .route("/rpc", post(rpc_handler))
