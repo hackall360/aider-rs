@@ -81,17 +81,25 @@ async fn rpc_handler(
             let map = aider_core::repo_map();
             RpcResponse::result(Value::String(map))
         }
-        "llm" => {
+        "llm.chat" => {
             #[derive(Deserialize)]
-            struct LlmParams {
-                prompt: String,
+            struct ChatParams {
+                messages: Vec<aider_core::chat::ChatMessage>,
             }
-            let params: LlmParams = serde_json::from_value(req.params).unwrap_or(LlmParams {
-                prompt: String::new(),
-            });
-            let ans = aider_core::llm(params.prompt);
-            RpcResponse::result(Value::String(ans))
+            let params: ChatParams =
+                serde_json::from_value(req.params).unwrap_or(ChatParams { messages: vec![] });
+            match aider_core::chat::chat(&params.messages).await {
+                Ok(ans) => RpcResponse::result(Value::String(ans)),
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
         }
+        "llm.models" => match aider_core::models::fetch_models().await {
+            Ok(models) => {
+                let v = serde_json::to_value(models).unwrap_or(Value::Null);
+                RpcResponse::result(v)
+            }
+            Err(e) => RpcResponse::error(e.to_string()),
+        },
         "analytics_event" => {
             #[derive(Deserialize)]
             struct AnalyticsParams {
