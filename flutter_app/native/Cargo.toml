@@ -9,3 +9,5 @@ crate-type = ["cdylib"]
 [dependencies]
 flutter_rust_bridge = "=2.11.1"
 aider-core = { path = "../../aider-core/core" }
+aider-analytics = { path = "../../aider-core/analytics" }
+serde_json = "1"

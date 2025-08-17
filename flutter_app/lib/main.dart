@@ -5,6 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'api.dart' as api;
 import 'chat_database.dart';
 import 'frb_generated.dart';
+import 'widgets.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,33 +95,47 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final controller = TextEditingController();
-  final messages = <String>[];
+  String diff = '';
+  String webContent = '';
 
   Future<void> _send() async {
     final text = controller.text;
     controller.clear();
     final response = await api.llm(prompt: text);
     widget.db.addMessage(text, response);
-    setState(() {
-      messages.add('Me: ' + text);
-      messages.add('Rust: ' + response);
-    });
+    await api.analyticsEvent(event: 'message', properties: '{}');
     widget.channel.sink.add(text);
+    setState(() {});
+  }
+
+  Future<void> _showDiff() async {
+    final output = await api.git(command: 'diff');
+    setState(() => diff = output);
+  }
+
+  Future<void> _scrape(String url) async {
+    final result = await api.scrapeUrl(url: url);
+    setState(() => webContent = result);
+  }
+
+  Future<void> _undo() async {
+    widget.db.deleteLastMessage();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: messages.length,
-            itemBuilder: (context, i) => ListTile(title: Text(messages[i])),
-          ),
-        ),
+        Expanded(child: ChatHistory(db: widget.db)),
+        FileDiffViewer(diff: diff),
+        FileDiffViewer(diff: webContent),
+        WebContentInput(onSubmit: _scrape),
         Row(
           children: [
             Expanded(child: TextField(controller: controller)),
+            UndoButton(onPressed: _undo),
+            IconButton(icon: const Icon(Icons.code), onPressed: _showDiff),
             IconButton(icon: const Icon(Icons.send), onPressed: _send),
           ],
         ),

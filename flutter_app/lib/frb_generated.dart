@@ -79,6 +79,12 @@ abstract class RustLibApi extends BaseApi {
 
   Future<String> crateApiRepoMap();
   Future<String> crateApiVoiceRecord();
+  Future<String> crateApiGit({required String command});
+  Future<String> crateApiScrapeUrl({required String url});
+  Future<bool> crateApiAnalyticsEvent({
+    required String event,
+    required String properties,
+  });
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -170,6 +176,94 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiVoiceRecordConstMeta =>
       const TaskConstMeta(debugName: "voice_record", argNames: []);
+
+  @override
+  Future<String> crateApiGit({required String command}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(command, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiGitConstMeta,
+        argValues: [command],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiGitConstMeta =>
+      const TaskConstMeta(debugName: "git", argNames: ["command"]);
+
+  @override
+  Future<String> crateApiScrapeUrl({required String url}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(url, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiScrapeUrlConstMeta,
+        argValues: [url],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiScrapeUrlConstMeta =>
+      const TaskConstMeta(debugName: "scrape_url", argNames: ["url"]);
+
+  @override
+  Future<bool> crateApiAnalyticsEvent({
+    required String event,
+    required String properties,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(event, serializer);
+          sse_encode_String(properties, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiAnalyticsEventConstMeta,
+        argValues: [event, properties],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiAnalyticsEventConstMeta => const TaskConstMeta(
+      debugName: "analytics_event", argNames: ["event", "properties"]);
 
   @protected
   String dco_decode_String(dynamic raw) {
