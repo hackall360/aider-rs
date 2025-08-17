@@ -54,7 +54,7 @@ fn main() -> Result<()> {
     ctx.insert("name", "world");
     let rendered = prompts.render_str("Hello {{name}}!", &ctx)?;
     if args.verbose {
-        println!("{}", rendered);
+        println!("{rendered}");
     }
 
     // Demonstrate loading resources in multiple formats.

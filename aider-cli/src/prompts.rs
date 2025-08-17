@@ -2,20 +2,18 @@ use anyhow::Result;
 use tera::{Context, Tera};
 
 /// Template handling using `tera`, replacing the Python `prompts.py` module.
+#[derive(Default)]
 pub struct Prompts {
     tera: Tera,
 }
 
-impl Default for Prompts {
-    fn default() -> Self {
-        Self { tera: Tera::default() }
-    }
-}
-
 impl Prompts {
     /// Load templates from the provided glob pattern.
+    #[allow(dead_code)]
     pub fn new(glob: &str) -> Result<Self> {
-        Ok(Self { tera: Tera::new(glob)? })
+        Ok(Self {
+            tera: Tera::new(glob)?,
+        })
     }
 
     /// Render a template string with the supplied context.
@@ -23,4 +21,3 @@ impl Prompts {
         Ok(self.tera.render_str(template, ctx)?)
     }
 }
-

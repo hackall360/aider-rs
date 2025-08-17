@@ -24,7 +24,7 @@ Future<void> main(List<String> arguments) async {
 
   final git = Git();
   final gitResult = await git.run(['status', '--short']);
-  stdout.write(gitResult.stdout);
+  stdout.write(gitResult);
 
   final client = HttpClient();
   final response = await client.get<String>('https://example.com');

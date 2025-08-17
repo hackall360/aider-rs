@@ -18,4 +18,3 @@ pub struct CliArgs {
     #[arg(long)]
     pub save_config: bool,
 }
-

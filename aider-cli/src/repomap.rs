@@ -8,6 +8,7 @@ use tree_sitter_highlight::{HighlightConfiguration, Highlighter};
 /// Port of the Python `repomap.py` using `tree-sitter`.
 pub struct RepoMap {
     parser: Parser,
+    #[allow(dead_code)]
     highlight: HighlightConfiguration,
 }
 
@@ -18,12 +19,8 @@ impl RepoMap {
         let mut parser = Parser::new();
         parser.set_language(language)?;
 
-        let highlight = HighlightConfiguration::new(
-            language,
-            tree_sitter_python::HIGHLIGHT_QUERY,
-            "",
-            "",
-        )?;
+        let highlight =
+            HighlightConfiguration::new(language, tree_sitter_python::HIGHLIGHT_QUERY, "", "")?;
 
         Ok(Self { parser, highlight })
     }
@@ -37,19 +34,16 @@ impl RepoMap {
     }
 
     /// Highlight a string using the configured grammar.
+    #[allow(dead_code)]
     pub fn highlight(&self, source: &str) -> Result<Vec<String>> {
         let mut highlighter = Highlighter::new();
         let mut ranges = Vec::new();
         let bytes = source.as_bytes();
         for event in highlighter.highlight(&self.highlight, bytes, None, |_| None)? {
-            match event? {
-                tree_sitter_highlight::HighlightEvent::Source { start, end } => {
-                    ranges.push(String::from_utf8_lossy(&bytes[start..end]).into_owned());
-                }
-                _ => {}
+            if let tree_sitter_highlight::HighlightEvent::Source { start, end } = event? {
+                ranges.push(String::from_utf8_lossy(&bytes[start..end]).into_owned());
             }
         }
         Ok(ranges)
     }
 }
-

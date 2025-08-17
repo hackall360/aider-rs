@@ -1,10 +1,17 @@
-import 'dart:io';
-
-import 'package:process_run/process_run.dart' as pr;
+import 'dart:async';
+import 'package:dart_cli/src/sidecar.dart' as sidecar;
 
 class Git {
-  Future<ProcessResult> run(List<String> args, {String? workingDirectory}) {
-    return pr.runExecutableArguments('git', args,
-        workingDirectory: workingDirectory);
+  Future<String> run(List<String> args) async {
+    final buffer = StringBuffer();
+    final code = await sidecar.command(
+      'git',
+      args,
+      (type, data) => buffer.write(data),
+    );
+    if (code != 0) {
+      throw Exception('git exited with code $code');
+    }
+    return buffer.toString();
   }
 }
