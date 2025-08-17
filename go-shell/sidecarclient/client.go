@@ -120,6 +120,12 @@ func (c *Client) ScrapeURL(ctx context.Context, url string) (string, error) {
         return out, err
 }
 
+func (c *Client) VoiceRecord(ctx context.Context) (string, error) {
+        var out string
+        err := c.call(ctx, "voice.record", nil, &out)
+        return out, err
+}
+
 func (c *Client) AnalyticsEvent(ctx context.Context, event string, props map[string]interface{}) error {
         params := map[string]interface{}{"event": event, "properties": props}
         return c.call(ctx, "analytics_event", params, nil)

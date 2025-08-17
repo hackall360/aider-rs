@@ -5,6 +5,7 @@ use tracing::info;
 pub mod chat;
 pub mod models;
 pub mod scrape;
+pub mod voice;
 
 #[derive(Error, Debug)]
 pub enum CoreError {
@@ -14,6 +15,8 @@ pub enum CoreError {
     Git(String),
     #[error("invalid input: {0}")]
     Invalid(String),
+    #[error("audio error: {0}")]
+    Audio(String),
 }
 
 pub async fn fetch(url: &str) -> Result<String, CoreError> {

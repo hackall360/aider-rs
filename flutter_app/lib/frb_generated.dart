@@ -78,6 +78,7 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateApiLlm({required String prompt});
 
   Future<String> crateApiRepoMap();
+  Future<String> crateApiVoiceRecord();
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -142,6 +143,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiRepoMapConstMeta =>
       const TaskConstMeta(debugName: "repo_map", argNames: []);
+
+  @override
+  Future<String> crateApiVoiceRecord() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiVoiceRecordConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiVoiceRecordConstMeta =>
+      const TaskConstMeta(debugName: "voice_record", argNames: []);
 
   @protected
   String dco_decode_String(dynamic raw) {

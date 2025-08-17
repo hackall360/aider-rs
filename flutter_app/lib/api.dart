@@ -10,3 +10,5 @@ Future<String> llm({required String prompt}) =>
     RustLib.instance.api.crateApiLlm(prompt: prompt);
 
 Future<String> repoMap() => RustLib.instance.api.crateApiRepoMap();
+
+Future<String> voiceRecord() => RustLib.instance.api.crateApiVoiceRecord();
