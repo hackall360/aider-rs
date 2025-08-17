@@ -91,8 +91,25 @@ async fn rpc_handler(
             }
         }
         "repo_map" => {
-            let map = aider_core::repo_map();
-            RpcResponse::result(Value::String(map))
+            match aider_core::repo_map() {
+                Ok(map) => RpcResponse::result(Value::String(map)),
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
+        }
+        "repo.map" => {
+            match aider_core::repo_map() {
+                Ok(map) => RpcResponse::result(Value::String(map)),
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
+        }
+        "repo.watch" => {
+            match aider_core::watch_repo().await {
+                Ok(paths) => {
+                    let arr: Vec<Value> = paths.into_iter().map(Value::String).collect();
+                    RpcResponse::result(Value::Array(arr))
+                }
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
         }
         "llm.chat" => {
             #[derive(Deserialize)]
