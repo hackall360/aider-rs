@@ -122,6 +122,10 @@ async fn rpc_handler(
                 Err(e) => RpcResponse::error(e.to_string()),
             }
         }
+        "voice.record" => match aider_core::voice::record().await {
+            Ok(txt) => RpcResponse::result(Value::String(txt)),
+            Err(e) => RpcResponse::error(e.to_string()),
+        },
         "analytics_event" => {
             #[derive(Deserialize)]
             struct AnalyticsParams {
