@@ -12,3 +12,8 @@ aider-core = { path = "../core" }
 aider-analytics = { path = "../analytics" }
 crossterm = { version = "0.27", optional = false }
 futures-util = { version = "0.3", features = ["sink"] }
+
+[features]
+default = []
+playwright = ["aider-core/playwright"]
+pandoc = ["aider-core/pandoc"]

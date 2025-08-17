@@ -32,6 +32,13 @@ Future<String> llmChat(List<Map<String, String>> messages) async {
   return body['result'] as String;
 }
 
+Future<String> scrapeUrl(String url) async {
+  final resp = await _rpc('scrape.url', {'url': url});
+  final body = resp.data as Map<String, dynamic>;
+  if (body['error'] != null) throw Exception(body['error']);
+  return body['result'] as String;
+}
+
 Future<int> command(
   String cmd,
   List<String> args,

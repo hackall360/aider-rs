@@ -43,3 +43,4 @@ The JSON-RPC API supports the following methods:
 - `repo_map` – return a repository map
 - `llm.chat` – perform a chat completion (`{ "messages": [...] }`)
 - `llm.models` – list available LLM models
+- `scrape.url` – fetch a URL and return Markdown

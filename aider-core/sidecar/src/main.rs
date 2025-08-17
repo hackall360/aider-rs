@@ -110,6 +110,18 @@ async fn rpc_handler(
             }
             Err(e) => RpcResponse::error(e.to_string()),
         },
+        "scrape.url" => {
+            #[derive(Deserialize)]
+            struct ScrapeParams {
+                url: String,
+            }
+            let params: ScrapeParams =
+                serde_json::from_value(req.params).unwrap_or(ScrapeParams { url: String::new() });
+            match aider_core::scrape::scrape_url(&params.url).await {
+                Ok(md) => RpcResponse::result(Value::String(md)),
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
+        }
         "analytics_event" => {
             #[derive(Deserialize)]
             struct AnalyticsParams {

@@ -108,14 +108,21 @@ func (c *Client) LLMChat(ctx context.Context, msgs []ChatMessage) (string, error
 }
 
 func (c *Client) LLMModels(ctx context.Context) ([]Model, error) {
-	var out []Model
-	err := c.call(ctx, "llm.models", nil, &out)
-	return out, err
+        var out []Model
+        err := c.call(ctx, "llm.models", nil, &out)
+        return out, err
+}
+
+func (c *Client) ScrapeURL(ctx context.Context, url string) (string, error) {
+        var out string
+        params := map[string]interface{}{"url": url}
+        err := c.call(ctx, "scrape.url", params, &out)
+        return out, err
 }
 
 func (c *Client) AnalyticsEvent(ctx context.Context, event string, props map[string]interface{}) error {
-	params := map[string]interface{}{"event": event, "properties": props}
-	return c.call(ctx, "analytics_event", params, nil)
+        params := map[string]interface{}{"event": event, "properties": props}
+        return c.call(ctx, "analytics_event", params, nil)
 }
 
 func (c *Client) DialWS(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
