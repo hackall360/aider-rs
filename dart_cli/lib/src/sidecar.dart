@@ -48,6 +48,20 @@ Future<String> coderSearchReplace(
   return body['result'] as String;
 }
 
+Future<String> repoMap() async {
+  final resp = await _rpc('repo.map', null);
+  final body = resp.data as Map<String, dynamic>;
+  if (body['error'] != null) throw Exception(body['error']);
+  return body['result'] as String;
+}
+
+Future<List<dynamic>> repoWatch() async {
+  final resp = await _rpc('repo.watch', null);
+  final body = resp.data as Map<String, dynamic>;
+  if (body['error'] != null) throw Exception(body['error']);
+  return List<dynamic>.from(body['result'] as List);
+}
+
 Future<Map<String, dynamic>> versionCheck() async {
   final resp = await _rpc('version.check', null);
   final body = resp.data as Map<String, dynamic>;

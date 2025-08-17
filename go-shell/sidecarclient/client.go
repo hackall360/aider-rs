@@ -85,9 +85,15 @@ func (c *Client) Git(ctx context.Context, args []string) (string, error) {
 }
 
 func (c *Client) RepoMap(ctx context.Context) (string, error) {
-	var out string
-	err := c.call(ctx, "repo_map", nil, &out)
-	return out, err
+        var out string
+        err := c.call(ctx, "repo.map", nil, &out)
+        return out, err
+}
+
+func (c *Client) RepoWatch(ctx context.Context) ([]string, error) {
+        var out []string
+        err := c.call(ctx, "repo.watch", nil, &out)
+        return out, err
 }
 
 type ChatMessage struct {
