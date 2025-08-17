@@ -99,7 +99,7 @@ async fn rpc_handler(
             let params: ChatParams =
                 serde_json::from_value(req.params).unwrap_or(ChatParams { messages: vec![] });
             match aider_core::chat::chat(&params.messages).await {
-                Ok(ans) => RpcResponse::result(Value::String(ans)),
+                Ok(answer) => RpcResponse::result(Value::String(answer)),
                 Err(e) => RpcResponse::error(e.to_string()),
             }
         }

@@ -1,4 +1,3 @@
-use reqwest;
 use std::process::Command;
 use thiserror::Error;
 use tracing::info;
