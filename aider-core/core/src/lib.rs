@@ -4,6 +4,7 @@ use tracing::info;
 
 pub mod chat;
 pub mod models;
+pub mod scrape;
 
 #[derive(Error, Debug)]
 pub enum CoreError {

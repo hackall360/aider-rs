@@ -11,7 +11,6 @@ from aider.coders import Coder
 from aider.dump import dump  # noqa: F401
 from aider.io import InputOutput
 from aider.main import main as cli_main
-from aider.scrape import Scraper, has_playwright
 
 
 class CaptureIO(InputOutput):
@@ -337,7 +336,6 @@ class GUI:
         self.state.init("recent_msgs_num", 0)
         self.state.init("web_content_num", 0)
         self.state.init("prompt")
-        self.state.init("scraper")
 
         self.state.init("initial_inchat_files", self.coder.get_inchat_relative_files())
 
@@ -483,17 +481,9 @@ class GUI:
 
         url = self.web_content
 
-        if not self.state.scraper:
-            self.scraper = Scraper(print_error=self.info, playwright_available=has_playwright())
-
-        content = self.scraper.scrape(url) or ""
-        if content.strip():
-            content = f"{url}\n\n" + content
-            self.prompt = content
-            self.prompt_as = "text"
-        else:
-            self.info(f"No web content found for `{url}`.")
-            self.web_content = None
+        self.info("Web scraping is not supported in this interface.")
+        self.web_content = None
+        return
 
     def do_undo(self, commit_hash):
         self.last_undo_empty.empty()
