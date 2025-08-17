@@ -12,6 +12,7 @@ use axum::{
 #[cfg(unix)]
 use crossterm::tty::IsTty;
 use futures_util::{SinkExt, StreamExt};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{env, net::SocketAddr};
@@ -131,12 +132,11 @@ async fn rpc_handler(
                 search: String,
                 replace: String,
             }
-            let params: Params =
-                serde_json::from_value(req.params).unwrap_or(Params {
-                    content: String::new(),
-                    search: String::new(),
-                    replace: String::new(),
-                });
+            let params: Params = serde_json::from_value(req.params).unwrap_or(Params {
+                content: String::new(),
+                search: String::new(),
+                replace: String::new(),
+            });
             match search_replace(&params.content, &params.search, &params.replace) {
                 Ok(out) => RpcResponse::result(Value::String(out)),
                 Err(e) => RpcResponse::error(e.to_string()),
@@ -167,10 +167,63 @@ async fn rpc_handler(
                 Err(e) => RpcResponse::error(e.to_string()),
             }
         }
+        "version.check" => match version_check().await {
+            Ok(info) => {
+                let v = serde_json::to_value(info).unwrap_or(Value::Null);
+                RpcResponse::result(v)
+            }
+            Err(e) => RpcResponse::error(e.to_string()),
+        },
         _ => RpcResponse::error("unknown method".into()),
     };
 
     (StatusCode::OK, Json(resp))
+}
+
+#[derive(Serialize)]
+struct VersionInfo {
+    current: String,
+    latest: String,
+    url: String,
+    instructions: String,
+}
+
+async fn version_check() -> Result<VersionInfo, Box<dyn std::error::Error>> {
+    let current = env!("CARGO_PKG_VERSION").to_string();
+    let url = env::var("AIDER_RELEASE_CHECK_URL").unwrap_or_else(|_| {
+        "https://api.github.com/repos/aider-rs/aider-rs/releases/latest".into()
+    });
+    let client = Client::new();
+    let resp: serde_json::Value = client
+        .get(&url)
+        .header("User-Agent", "aider-sidecar")
+        .send()
+        .await?
+        .json()
+        .await?;
+    let latest = resp
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .unwrap_or(&current)
+        .to_string();
+    let html_url = resp
+        .get("html_url")
+        .and_then(|v| v.as_str())
+        .unwrap_or("https://github.com/aider-rs/aider-rs/releases/latest")
+        .to_string();
+    let instructions = if latest != current {
+        format!(
+            "A new version {latest} is available. Download it from {html_url} or update via your package manager."
+        )
+    } else {
+        "You are running the latest version.".into()
+    };
+    Ok(VersionInfo {
+        current,
+        latest,
+        url: html_url,
+        instructions,
+    })
 }
 
 async fn command_ws(ws: WebSocketUpgrade) -> impl axum::response::IntoResponse {
