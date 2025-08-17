@@ -18,6 +18,7 @@ use tokio::{
     io::{AsyncBufReadExt, BufReader},
     net::TcpListener,
     process::Command,
+    task,
 };
 
 #[derive(Clone)]
@@ -122,8 +123,9 @@ async fn rpc_handler(
                 Err(e) => RpcResponse::error(e.to_string()),
             }
         }
-        "voice.record" => match aider_core::voice::record().await {
-            Ok(txt) => RpcResponse::result(Value::String(txt)),
+        "voice.record" => match task::spawn_blocking(aider_core::voice::record).await {
+            Ok(Ok(txt)) => RpcResponse::result(Value::String(txt)),
+            Ok(Err(e)) => RpcResponse::error(e.to_string()),
             Err(e) => RpcResponse::error(e.to_string()),
         },
         "analytics_event" => {

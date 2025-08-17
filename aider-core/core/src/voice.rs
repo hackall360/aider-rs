@@ -1,12 +1,13 @@
 use std::sync::{Arc, Mutex};
+use std::thread;
 use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use whisper_rs::{FullParams, SamplingStrategy, WhisperContext};
+use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
 
 use crate::CoreError;
 
-pub async fn record() -> Result<String, CoreError> {
+pub fn record() -> Result<String, CoreError> {
     let host = cpal::default_host();
     let device = host
         .default_input_device()
@@ -58,12 +59,15 @@ pub async fn record() -> Result<String, CoreError> {
     stream
         .play()
         .map_err(|e| CoreError::Audio(e.to_string()))?;
-    tokio::time::sleep(Duration::from_secs(5)).await;
+    thread::sleep(Duration::from_secs(5));
     drop(stream);
 
     let audio = collected.lock().unwrap().clone();
-    let ctx = WhisperContext::new("resources/ggml-base.en.bin")
-        .map_err(|e| CoreError::Audio(e.to_string()))?;
+    let ctx = WhisperContext::new_with_params(
+        "resources/ggml-base.en.bin",
+        WhisperContextParameters::default(),
+    )
+    .map_err(|e| CoreError::Audio(e.to_string()))?;
     let mut state = ctx
         .create_state()
         .map_err(|e| CoreError::Audio(e.to_string()))?;
@@ -73,10 +77,12 @@ pub async fn record() -> Result<String, CoreError> {
         .full(params, &audio)
         .map_err(|e| CoreError::Audio(e.to_string()))?;
     let mut out = String::new();
-    let n = state.full_n_segments();
+    let n = state
+        .full_n_segments()
+        .map_err(|e| CoreError::Audio(e.to_string()))?;
     for i in 0..n {
         if let Ok(seg) = state.full_get_segment_text(i) {
-            out.push_str(seg);
+            out.push_str(&seg);
         }
     }
     Ok(out)

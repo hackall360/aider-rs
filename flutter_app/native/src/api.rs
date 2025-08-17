@@ -12,8 +12,5 @@ pub fn repo_map() -> String {
 
 #[frb]
 pub fn voice_record() -> String {
-    tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(aider_core::voice::record())
-        .unwrap_or_else(|e| e.to_string())
+    aider_core::voice::record().unwrap_or_else(|e| e.to_string())
 }
