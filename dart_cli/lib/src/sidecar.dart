@@ -39,6 +39,15 @@ Future<String> scrapeUrl(String url) async {
   return body['result'] as String;
 }
 
+Future<String> coderSearchReplace(
+    String content, String search, String replace) async {
+  final resp = await _rpc('coder.search_replace',
+      {'content': content, 'search': search, 'replace': replace});
+  final body = resp.data as Map<String, dynamic>;
+  if (body['error'] != null) throw Exception(body['error']);
+  return body['result'] as String;
+}
+
 Future<int> command(
   String cmd,
   List<String> args,

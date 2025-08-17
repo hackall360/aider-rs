@@ -1,4 +1,5 @@
 use aider_analytics::Analytics;
+use aider_core::coders::search_replace::search_replace;
 use axum::{
     Json, Router,
     extract::{
@@ -120,6 +121,24 @@ async fn rpc_handler(
                 serde_json::from_value(req.params).unwrap_or(ScrapeParams { url: String::new() });
             match aider_core::scrape::scrape_url(&params.url).await {
                 Ok(md) => RpcResponse::result(Value::String(md)),
+                Err(e) => RpcResponse::error(e.to_string()),
+            }
+        }
+        "coder.search_replace" => {
+            #[derive(Deserialize)]
+            struct Params {
+                content: String,
+                search: String,
+                replace: String,
+            }
+            let params: Params =
+                serde_json::from_value(req.params).unwrap_or(Params {
+                    content: String::new(),
+                    search: String::new(),
+                    replace: String::new(),
+                });
+            match search_replace(&params.content, &params.search, &params.replace) {
+                Ok(out) => RpcResponse::result(Value::String(out)),
                 Err(e) => RpcResponse::error(e.to_string()),
             }
         }

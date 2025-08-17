@@ -42,5 +42,8 @@ Future<void> main(List<String> arguments) async {
   // Demonstrate loading shared resources.
   await loadJson('../resources/model-metadata.json');
   await loadYaml('../resources/model-settings.yml');
-  await loadPrompt('../resources/prompts/welcome.mustache');
+  await loadTemplate('../resources/templates/welcome.tera');
+  final replaced =
+      await coderSearchReplace('hello world', 'world', 'dart');
+  stdout.writeln('SearchReplace: $replaced');
 }

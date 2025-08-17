@@ -25,7 +25,3 @@ pub fn load_toml<P: AsRef<Path>>(path: P) -> Result<TomlValue> {
     Ok(toml::from_str(&data)?)
 }
 
-/// Load a plain text prompt template.
-pub fn load_prompt<P: AsRef<Path>>(path: P) -> Result<String> {
-    Ok(fs::read_to_string(path)?)
-}
