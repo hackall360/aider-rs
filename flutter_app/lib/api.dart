@@ -12,3 +12,16 @@ Future<String> llm({required String prompt}) =>
 Future<String> repoMap() => RustLib.instance.api.crateApiRepoMap();
 
 Future<String> voiceRecord() => RustLib.instance.api.crateApiVoiceRecord();
+
+Future<String> git({required String command}) =>
+    RustLib.instance.api.crateApiGit(command: command);
+
+Future<String> scrapeUrl({required String url}) =>
+    RustLib.instance.api.crateApiScrapeUrl(url: url);
+
+Future<bool> analyticsEvent({
+  required String event,
+  required String properties,
+}) =>
+    RustLib.instance.api
+        .crateApiAnalyticsEvent(event: event, properties: properties);

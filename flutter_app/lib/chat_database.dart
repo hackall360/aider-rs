@@ -27,4 +27,20 @@ class ChatDatabase {
       response,
     ]);
   }
+
+  List<Map<String, String>> getMessages() {
+    final rs =
+        _db.select('SELECT prompt, response FROM messages ORDER BY id');
+    return rs
+        .map((row) => {
+              'prompt': row['prompt'] as String,
+              'response': row['response'] as String,
+            })
+        .toList();
+  }
+
+  void deleteLastMessage() {
+    _db.execute(
+        'DELETE FROM messages WHERE id = (SELECT MAX(id) FROM messages)');
+  }
 }
