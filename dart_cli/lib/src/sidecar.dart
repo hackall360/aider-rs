@@ -48,6 +48,13 @@ Future<String> coderSearchReplace(
   return body['result'] as String;
 }
 
+Future<Map<String, dynamic>> versionCheck() async {
+  final resp = await _rpc('version.check', null);
+  final body = resp.data as Map<String, dynamic>;
+  if (body['error'] != null) throw Exception(body['error']);
+  return Map<String, dynamic>.from(body['result'] as Map);
+}
+
 Future<int> command(
   String cmd,
   List<String> args,

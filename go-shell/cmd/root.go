@@ -40,6 +40,11 @@ var rootCmd = &cobra.Command{
 		}
 
 		client := sc.New()
+		if info, err := client.VersionCheck(ctx); err == nil {
+			logger.Info("version", zap.String("current", info.Current), zap.String("latest", info.Latest), zap.String("instructions", info.Instructions))
+		} else {
+			logger.Warn("version check failed", zap.Error(err))
+		}
 		outCh, codeCh, err := client.Command(ctx, "git", []string{"--version"})
 		if err == nil {
 			go func() {

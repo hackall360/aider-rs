@@ -12,6 +12,7 @@ aider-core = { path = "../core" }
 aider-analytics = { path = "../analytics" }
 crossterm = { version = "0.27", optional = false }
 futures-util = { version = "0.3", features = ["sink"] }
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
 
 [features]
 default = []

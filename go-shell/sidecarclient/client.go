@@ -100,6 +100,13 @@ type Model struct {
 	Pricing map[string]float64 `json:"pricing"`
 }
 
+type VersionInfo struct {
+	Current      string `json:"current"`
+	Latest       string `json:"latest"`
+	URL          string `json:"url"`
+	Instructions string `json:"instructions"`
+}
+
 func (c *Client) LLMChat(ctx context.Context, msgs []ChatMessage) (string, error) {
 	var out string
 	params := map[string]interface{}{"messages": msgs}
@@ -108,34 +115,40 @@ func (c *Client) LLMChat(ctx context.Context, msgs []ChatMessage) (string, error
 }
 
 func (c *Client) LLMModels(ctx context.Context) ([]Model, error) {
-        var out []Model
-        err := c.call(ctx, "llm.models", nil, &out)
-        return out, err
+	var out []Model
+	err := c.call(ctx, "llm.models", nil, &out)
+	return out, err
 }
 
 func (c *Client) ScrapeURL(ctx context.Context, url string) (string, error) {
-        var out string
-        params := map[string]interface{}{"url": url}
-        err := c.call(ctx, "scrape.url", params, &out)
-        return out, err
+	var out string
+	params := map[string]interface{}{"url": url}
+	err := c.call(ctx, "scrape.url", params, &out)
+	return out, err
 }
 
 func (c *Client) CoderSearchReplace(ctx context.Context, content, search, replace string) (string, error) {
-        var out string
-        params := map[string]interface{}{"content": content, "search": search, "replace": replace}
-        err := c.call(ctx, "coder.search_replace", params, &out)
-        return out, err
+	var out string
+	params := map[string]interface{}{"content": content, "search": search, "replace": replace}
+	err := c.call(ctx, "coder.search_replace", params, &out)
+	return out, err
 }
 
 func (c *Client) VoiceRecord(ctx context.Context) (string, error) {
-        var out string
-        err := c.call(ctx, "voice.record", nil, &out)
-        return out, err
+	var out string
+	err := c.call(ctx, "voice.record", nil, &out)
+	return out, err
 }
 
 func (c *Client) AnalyticsEvent(ctx context.Context, event string, props map[string]interface{}) error {
-        params := map[string]interface{}{"event": event, "properties": props}
-        return c.call(ctx, "analytics_event", params, nil)
+	params := map[string]interface{}{"event": event, "properties": props}
+	return c.call(ctx, "analytics_event", params, nil)
+}
+
+func (c *Client) VersionCheck(ctx context.Context) (VersionInfo, error) {
+	var out VersionInfo
+	err := c.call(ctx, "version.check", nil, &out)
+	return out, err
 }
 
 func (c *Client) DialWS(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
