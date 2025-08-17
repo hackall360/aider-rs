@@ -20,3 +20,6 @@ tmp.benchmarks/
 # Dart
 **/.dart_tool/
 **/pubspec.lock
+
+# Rust
+**/target/
