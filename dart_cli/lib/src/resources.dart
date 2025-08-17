@@ -21,6 +21,6 @@ Future<Map<String, dynamic>> loadToml(String path) async {
   return doc.toMap();
 }
 
-Future<String> loadPrompt(String path) async {
+Future<String> loadTemplate(String path) async {
   return File(path).readAsString();
 }

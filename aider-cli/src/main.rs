@@ -48,11 +48,11 @@ fn main() -> Result<()> {
     let mut history = history::History::new(data_dir.join("history.yaml"));
     history.add("run".to_string());
 
-    // Demonstrate prompt template rendering.
-    let mut prompts = prompts::Prompts::default();
+    // Demonstrate prompt template rendering from resources/templates.
+    let prompts = prompts::Prompts::new()?;
     let mut ctx = tera::Context::new();
     ctx.insert("name", "world");
-    let rendered = prompts.render_str("Hello {{name}}!", &ctx)?;
+    let rendered = prompts.render("welcome.tera", &ctx)?;
     if args.verbose {
         println!("{rendered}");
     }
@@ -60,7 +60,6 @@ fn main() -> Result<()> {
     // Demonstrate loading resources in multiple formats.
     let _meta = resources::load_json("resources/model-metadata.json")?;
     let _settings = resources::load_yaml("resources/model-settings.yml")?;
-    let _prompt = resources::load_prompt("resources/prompts/welcome.mustache")?;
 
     // Start file watching in the background.
     let _watcher = watch::watch(&std::env::current_dir()?)?;

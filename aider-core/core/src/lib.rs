@@ -6,6 +6,7 @@ pub mod chat;
 pub mod models;
 pub mod scrape;
 pub mod voice;
+pub mod coders;
 
 #[derive(Error, Debug)]
 pub enum CoreError {

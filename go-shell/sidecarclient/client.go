@@ -120,6 +120,13 @@ func (c *Client) ScrapeURL(ctx context.Context, url string) (string, error) {
         return out, err
 }
 
+func (c *Client) CoderSearchReplace(ctx context.Context, content, search, replace string) (string, error) {
+        var out string
+        params := map[string]interface{}{"content": content, "search": search, "replace": replace}
+        err := c.call(ctx, "coder.search_replace", params, &out)
+        return out, err
+}
+
 func (c *Client) VoiceRecord(ctx context.Context) (string, error) {
         var out string
         err := c.call(ctx, "voice.record", nil, &out)
