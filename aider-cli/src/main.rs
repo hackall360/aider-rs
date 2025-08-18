@@ -7,6 +7,7 @@ mod repo;
 mod repomap;
 mod resources;
 mod watch;
+mod usage;
 
 use anyhow::Result;
 use clap::Parser;
@@ -24,6 +25,12 @@ fn run() -> Result<()> {
     let mut config = Config::load(args.config.as_deref())?;
     if args.verbose {
         config.verbose = true;
+    }
+    if args.show_usage {
+        config.show_usage = true;
+    }
+    if args.no_reasoning_tokens {
+        config.reasoning_tokens = false;
     }
 
     // Set up structured logging.
@@ -75,6 +82,19 @@ fn run() -> Result<()> {
     // Demonstrate loading resources in multiple formats.
     let _meta = resources::load_json("resources/model-metadata.json")?;
     let _settings = resources::load_yaml("resources/model-settings.yml")?;
+
+    if config.show_usage {
+        let meta = resources::load_json("resources/model-metadata.json")?;
+        let mut tracker = usage::UsageTracker::new("deepseek-reasoner", meta);
+        println!(
+            "{}",
+            tracker.report(aider_llm::Usage {
+                prompt_tokens: 10,
+                completion_tokens: 5,
+                cost: 0.0,
+            })
+        );
+    }
 
     // Start file watching in the background.
     let _watcher = watch::watch(&std::env::current_dir()?)?;
