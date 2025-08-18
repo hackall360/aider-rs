@@ -40,6 +40,7 @@ dependencies = [
 name = "aider-core"
 version = "0.1.0"
 dependencies = [
+ "aider-llm",
  "anyhow",
  "axum 0.7.9",
  "clap",
@@ -66,6 +67,16 @@ dependencies = [
  "tree-sitter-go",
  "tree-sitter-python",
  "tree-sitter-rust",
+]
+
+[[package]]
+name = "aider-llm"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
