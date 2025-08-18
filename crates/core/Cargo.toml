@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = { workspace = true }
-thiserror = { workspace = true }
-serde = { workspace = true }
+    aider-llm = { path = "../llm" }
+    anyhow = { workspace = true }
+    thiserror = { workspace = true }
+    serde = { workspace = true }
 serde_yaml = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

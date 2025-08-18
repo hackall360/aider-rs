@@ -3,7 +3,7 @@ use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt};
 use tokio::signal;
 use tokio_stream::StreamExt;
 
-use crate::model::Model;
+use aider_llm::{mock::MockProvider, ChatChunk, ModelProvider};
 
 #[derive(Default)]
 enum ChatMode {
@@ -19,7 +19,7 @@ pub struct Session {
     api_key: Option<String>,
     dry_run: bool,
     history: Vec<String>,
-    model: Box<dyn Model>,
+    provider: Box<dyn ModelProvider>,
     chat_mode: ChatMode,
 }
 
@@ -31,14 +31,29 @@ impl Session {
         api_key: Option<String>,
         dry_run: bool,
     ) -> Self {
-        let model: Box<dyn Model> = Box::new(crate::model::EchoModel::default());
+        Self::with_provider(
+            model_name,
+            prompt,
+            api_key,
+            dry_run,
+            Box::new(MockProvider::default()),
+        )
+    }
+
+    pub fn with_provider(
+        model_name: String,
+        prompt: Option<String>,
+        api_key: Option<String>,
+        dry_run: bool,
+        provider: Box<dyn ModelProvider>,
+    ) -> Self {
         Self {
             model_name,
             prompt,
             api_key,
             dry_run,
             history: Vec::new(),
-            model,
+            provider,
             chat_mode: ChatMode::default(),
         }
     }
@@ -92,18 +107,21 @@ impl Session {
     }
 
     async fn stream_reply(&self, message: String) -> Result<()> {
-        let mut stream = self.model.chat(message);
+        let mut stream = self.provider.chat(message);
         let mut stdout = io::stdout();
         let ctrl_c = signal::ctrl_c();
         tokio::pin!(ctrl_c);
 
         loop {
             tokio::select! {
-                token = stream.next() => {
-                    match token {
-                        Some(t) => {
+                chunk = stream.next() => {
+                    match chunk {
+                        Some(ChatChunk::Token(t)) => {
                             stdout.write_all(t.as_bytes()).await?;
                             stdout.flush().await?;
+                        }
+                        Some(ChatChunk::ToolCall(_)) => {
+                            // placeholder for tool call handling
                         }
                         None => {
                             stdout.write_all(b"\n").await?;
@@ -120,5 +138,31 @@ impl Session {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use aider_llm::ChatChunk;
+    use tokio_stream::StreamExt;
+
+    #[tokio::test]
+    async fn session_uses_mock_provider() {
+        let provider = MockProvider::new_with_tokens(vec!["hi".into()]);
+        let session =
+            Session::with_provider("mock".into(), None, None, false, Box::new(provider.clone()));
+        let stream = provider.chat("ignored".into());
+        let chunks: Vec<ChatChunk> = stream.collect().await;
+        let tokens: Vec<String> = chunks
+            .into_iter()
+            .filter_map(|c| match c {
+                ChatChunk::Token(t) => Some(t),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(tokens, vec!["hi"]);
+        // ensure session can call stream_reply without error
+        session.stream_reply("test".into()).await.unwrap();
     }
 }
