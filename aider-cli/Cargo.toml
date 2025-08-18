@@ -2,6 +2,7 @@
 name = "aider-cli"
 version = "0.1.0"
 edition = "2021"
+[workspace]
 
 [dependencies]
 anyhow = "1"
@@ -17,3 +18,5 @@ tree-sitter = "0.20"
 tree-sitter-highlight = "0.20"
 tree-sitter-python = "0.20"
 tera = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter", "json"] }
