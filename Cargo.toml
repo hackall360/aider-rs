@@ -1,0 +1,35 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/cli",
+    "crates/sidecar",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt"] }
+reqwest = { version = "0.11", features = ["json", "stream"] }
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4", features = ["derive"] }
+git2 = "0.18"
+ignore = "0.4"
+notify = "6"
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"
+tree-sitter-go = "0.20"
+tree-sitter-python = "0.20"
+diffy = "0.3"
+tera = "1.19"
+axum = "0.7"
+tonic = { version = "0.10", features = ["transport"] }
+tokio-stream = "0.1"
+tower = "0.4"
+rustls = "0.21"
