@@ -21,4 +21,12 @@ pub struct CliArgs {
     /// Print the merged configuration and exit.
     #[arg(long)]
     pub print_config: bool,
+
+    /// Print a repository map built with tree-sitter and exit.
+    #[arg(long)]
+    pub repomap: bool,
+
+    /// Maximum number of tokens to include in the repository map.
+    #[arg(long, default_value_t = 1000)]
+    pub map_tokens: usize,
 }
