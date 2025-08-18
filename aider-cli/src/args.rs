@@ -29,4 +29,12 @@ pub struct CliArgs {
     /// Maximum number of tokens to include in the repository map.
     #[arg(long, default_value_t = 1000)]
     pub map_tokens: usize,
+
+    /// Show token and cost usage after each turn.
+    #[arg(long)]
+    pub show_usage: bool,
+
+    /// Disable reasoning tokens if supported by the model.
+    #[arg(long)]
+    pub no_reasoning_tokens: bool,
 }

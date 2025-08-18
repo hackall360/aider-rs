@@ -34,6 +34,7 @@ pub struct OpenAIConfig {
     pub temperature: Option<f32>,
     pub max_tokens: Option<u32>,
     pub system_prompt: Option<String>,
+    pub reasoning_tokens: bool,
 }
 
 impl OpenAIConfig {
@@ -45,6 +46,7 @@ impl OpenAIConfig {
             temperature: None,
             max_tokens: None,
             system_prompt: None,
+            reasoning_tokens: true,
         })
     }
 }
@@ -132,6 +134,9 @@ impl OpenAIProvider {
         }
         if let Some(mt) = self.cfg.max_tokens {
             body["max_tokens"] = json!(mt);
+        }
+        if !self.cfg.reasoning_tokens {
+            body["reasoning"] = json!({"max_tokens": 0});
         }
         body
     }
@@ -255,5 +260,25 @@ mod tests {
             })
             .collect();
         assert_eq!(collected.join(""), "Hello");
+    }
+
+    #[test]
+    fn disables_reasoning_tokens() {
+        let cfg = OpenAIConfig {
+            api_key: "k".into(),
+            model: "gpt-4o".into(),
+            temperature: None,
+            max_tokens: None,
+            system_prompt: None,
+            reasoning_tokens: false,
+        };
+        let provider = OpenAIProvider::new(cfg);
+        let body = provider.build_body("hi".into());
+        assert_eq!(
+            body.get("reasoning")
+                .and_then(|v| v.get("max_tokens"))
+                .and_then(|v| v.as_u64()),
+            Some(0)
+        );
     }
 }

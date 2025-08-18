@@ -34,6 +34,7 @@ pub struct AnthropicConfig {
     pub temperature: Option<f32>,
     pub max_tokens: Option<u32>,
     pub system_prompt: Option<String>,
+    pub reasoning_tokens: bool,
 }
 
 impl AnthropicConfig {
@@ -45,6 +46,7 @@ impl AnthropicConfig {
             temperature: None,
             max_tokens: None,
             system_prompt: None,
+            reasoning_tokens: true,
         })
     }
 }
@@ -130,6 +132,9 @@ impl AnthropicProvider {
         }
         if let Some(mt) = self.cfg.max_tokens {
             body["max_tokens"] = json!(mt);
+        }
+        if !self.cfg.reasoning_tokens {
+            body["thinking"] = json!({"budget_tokens": 0});
         }
         body
     }
@@ -240,5 +245,25 @@ mod tests {
             })
             .collect();
         assert_eq!(collected.join(""), "Hi!");
+    }
+
+    #[test]
+    fn disables_reasoning_tokens() {
+        let cfg = AnthropicConfig {
+            api_key: "k".into(),
+            model: "claude-3-5-sonnet".into(),
+            temperature: None,
+            max_tokens: None,
+            system_prompt: None,
+            reasoning_tokens: false,
+        };
+        let provider = AnthropicProvider::new(cfg);
+        let body = provider.build_body("hi".into());
+        assert_eq!(
+            body.get("thinking")
+                .and_then(|v| v.get("budget_tokens"))
+                .and_then(|v| v.as_u64()),
+            Some(0)
+        );
     }
 }

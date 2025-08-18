@@ -27,6 +27,10 @@ pub struct Config {
     pub auto_test: bool,
     /// Logging level passed to `tracing`.
     pub log_level: Option<String>,
+    /// Show token and cost usage after each turn.
+    pub show_usage: bool,
+    /// Include reasoning tokens if the model supports them.
+    pub reasoning_tokens: bool,
 }
 
 impl Default for Config {
@@ -40,6 +44,8 @@ impl Default for Config {
             auto_lint: false,
             auto_test: false,
             log_level: None,
+            show_usage: false,
+            reasoning_tokens: true,
         }
     }
 }
@@ -86,6 +92,12 @@ impl Config {
         }
         if let Ok(val) = env::var("AIDER_VERBOSE") {
             cfg.verbose = parse_bool(&val);
+        }
+        if let Ok(val) = env::var("AIDER_SHOW_USAGE") {
+            cfg.show_usage = parse_bool(&val);
+        }
+        if let Ok(val) = env::var("AIDER_REASONING_TOKENS") {
+            cfg.reasoning_tokens = parse_bool(&val);
         }
 
         Ok(cfg)

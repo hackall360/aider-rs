@@ -24,6 +24,7 @@ tree-sitter-typescript = "0.20"
 tera = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter", "json"] }
+aider-llm = { path = "../crates/llm" }
 
 [dev-dependencies]
 assert_cmd = "2"
