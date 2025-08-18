@@ -5,9 +5,11 @@ use tracing_subscriber::FmtSubscriber;
 pub mod git;
 pub mod model;
 pub mod session;
+pub mod watch;
 pub use git::{GitRepo, RepoStatus};
 pub use model::{EchoModel, Model};
 pub use session::Session;
+pub use watch::FileWatcher;
 
 pub fn init_tracing() -> Result<()> {
     let subscriber = FmtSubscriber::new();
