@@ -48,10 +48,15 @@ fn run() -> Result<()> {
         return Ok(());
     }
 
-    // Enumerate repository files and parse the first one with tree-sitter.
+    // Optionally build and print a repository map.
     let repo = repo::Repo::new(std::env::current_dir()?);
-    let mut repomap = repomap::RepoMap::new()?;
-    analyze_repo(&repo, &mut repomap)?;
+    if args.repomap {
+        let mut map = repomap::RepoMap::new(args.map_tokens);
+        map.build(&repo.files())?;
+        map.print();
+        map.save(std::path::Path::new("repomap.json"))?;
+        return Ok(());
+    }
 
     // Set up analytics and history persistence.
     let data_dir = Config::data_dir();
@@ -79,14 +84,4 @@ fn run() -> Result<()> {
 
 fn main() -> Result<()> {
     run()
-}
-
-#[tracing::instrument(skip(repo, repomap))]
-fn analyze_repo(repo: &repo::Repo, repomap: &mut repomap::RepoMap) -> Result<()> {
-    let files = repo.files();
-    if let Some(first) = files.first() {
-        let tree = repomap.parse_file(first)?;
-        info!(file = ?first, nodes = tree.root_node().child_count(), "parsed file");
-    }
-    Ok(())
 }
