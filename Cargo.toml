@@ -21,7 +21,9 @@ tokio = { version = "1", features = ["full"] }
 clap = { version = "4", features = ["derive", "env"] }
 git2 = "0.18"
 ignore = "0.4"
-notify = "6"
+notify = "8"
+notify-debouncer-mini = { version = "0.7", features = ["crossbeam-channel"] }
+crossbeam-channel = "0.5"
 tree-sitter = "0.20"
 tree-sitter-rust = "0.20"
 tree-sitter-go = "0.20"

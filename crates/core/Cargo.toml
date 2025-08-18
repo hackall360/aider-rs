@@ -16,6 +16,8 @@ clap = { workspace = true }
 git2 = { workspace = true }
 ignore = { workspace = true }
 notify = { workspace = true }
+notify-debouncer-mini = { workspace = true }
+crossbeam-channel = { workspace = true }
 tree-sitter = { workspace = true }
 tree-sitter-rust = { workspace = true }
 tree-sitter-go = { workspace = true }
