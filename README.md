@@ -189,3 +189,15 @@ The script downloads official installers for each language and avoids any Python
 - *"Aider ... is the tool to benchmark against."* — [BeetleB on Hacker News](https://news.ycombinator.com/item?id=43930201)
 - *"aider is really cool"* — [kache on X](https://x.com/yacineMTB/status/1911224442430124387)
 
+
+## Rust workspace
+
+This repository includes a Rust workspace defined in `Cargo.toml`.
+The workspace is organized into the following crates:
+
+- `crates/core` – shared library code and common dependencies.
+- `crates/cli` – command line interface relying on the core crate.
+- `crates/sidecar` – placeholder for a sidecar process.
+
+The workspace targets Rust edition 2021 and is configured for
+`cargo fmt` and `cargo clippy` via `rustfmt.toml` and `clippy.toml`.

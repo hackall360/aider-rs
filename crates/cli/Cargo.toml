@@ -1,0 +1,9 @@
+[package]
+name = "aider-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aider-core = { path = "../core" }
+anyhow = { workspace = true }
+clap = { workspace = true }

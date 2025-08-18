@@ -1,0 +1,8 @@
+[package]
+name = "aider-sidecar"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aider-core = { path = "../core" }
+tokio = { workspace = true }
