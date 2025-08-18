@@ -33,6 +33,7 @@ dependencies = [
  "aider-core",
  "anyhow",
  "clap",
+ "tokio",
 ]
 
 [[package]]
