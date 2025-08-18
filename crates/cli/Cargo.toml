@@ -7,3 +7,4 @@ edition = "2021"
 aider-core = { path = "../core" }
 anyhow = { workspace = true }
 clap = { workspace = true }
+tokio = { workspace = true }

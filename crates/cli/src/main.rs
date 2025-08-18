@@ -31,7 +31,8 @@ struct Args {
     prompt: Vec<String>,
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let args = Args::parse();
     aider_core::init_tracing()?;
     let prompt = if args.prompt.is_empty() {
@@ -42,6 +43,6 @@ fn main() -> Result<()> {
 
     let mut session =
         aider_core::Session::new(args.model, prompt, args.openai_api_key, args.dry_run);
-    session.run()?;
+    session.run().await?;
     Ok(())
 }

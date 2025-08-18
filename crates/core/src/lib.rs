@@ -2,7 +2,9 @@ use anyhow::Result;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
+pub mod model;
 pub mod session;
+pub use model::{EchoModel, Model};
 pub use session::Session;
 
 pub fn init_tracing() -> Result<()> {
