@@ -51,6 +51,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_yaml",
+ "tempfile",
  "tera",
  "thiserror 1.0.69",
  "tokio",

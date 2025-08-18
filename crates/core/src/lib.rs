@@ -2,8 +2,10 @@ use anyhow::Result;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
+pub mod git;
 pub mod model;
 pub mod session;
+pub use git::{GitRepo, RepoStatus};
 pub use model::{EchoModel, Model};
 pub use session::Session;
 

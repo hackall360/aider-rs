@@ -27,3 +27,6 @@ tonic = { workspace = true }
 tokio-stream = { workspace = true }
 tower = { workspace = true }
 rustls = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"
