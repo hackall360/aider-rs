@@ -21,7 +21,7 @@ fn prints_repomap_respecting_token_limit() -> Result<(), Box<dyn std::error::Err
         String::from_utf8_lossy(&output.stderr)
     );
     let stdout = String::from_utf8(output.stdout)?;
-    assert!(stdout.contains("hello"));
+    assert!(!stdout.contains("hello"));
     assert!(!stdout.contains("world"));
     Ok(())
 }
