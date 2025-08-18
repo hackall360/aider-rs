@@ -27,6 +27,9 @@ pub trait ModelProvider: Send + Sync {
     fn usage(&self) -> Usage;
 }
 
+pub mod anthropic;
+pub mod openai;
+
 pub mod mock {
     use super::*;
 

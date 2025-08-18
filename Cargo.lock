@@ -73,6 +73,9 @@ dependencies = [
 name = "aider-llm"
 version = "0.1.0"
 dependencies = [
+ "bytes",
+ "once_cell",
+ "reqwest",
  "serde",
  "serde_json",
  "tokio",
