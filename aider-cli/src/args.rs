@@ -17,4 +17,8 @@ pub struct CliArgs {
     /// Persist the current settings to the configuration file.
     #[arg(long)]
     pub save_config: bool,
+
+    /// Print the merged configuration and exit.
+    #[arg(long)]
+    pub print_config: bool,
 }
