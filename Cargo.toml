@@ -2,6 +2,7 @@
 members = [
     "crates/core",
     "crates/cli",
+    "crates/server",
     "crates/sidecar",
     "crates/llm",
 ]
@@ -31,8 +32,11 @@ tree-sitter-go = "0.20"
 tree-sitter-python = "0.20"
 diffy = "0.3"
 tera = "1.19"
-axum = "0.7"
+axum = { version = "0.7", features = ["ws"] }
 tonic = { version = "0.10", features = ["transport"] }
 tokio-stream = "0.1"
+semver = "1"
+uuid = { version = "1", features = ["v4"] }
+prost = "0.12"
 tower = "0.4"
 rustls = "0.21"

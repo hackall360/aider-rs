@@ -1,0 +1,19 @@
+[package]
+name = "aider-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { workspace = true }
+tonic = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+semver = { workspace = true }
+uuid = { workspace = true }
+prost = { workspace = true }
+
+[build-dependencies]
+tonic-build = "0.10"
