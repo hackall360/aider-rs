@@ -543,9 +543,11 @@ class TokenChunk extends $pb.GeneratedMessage {
 class GetMapRequest extends $pb.GeneratedMessage {
   factory GetMapRequest({
     $core.String? sessionId,
+    $core.int? tokenBudget,
   }) {
     final result = create();
     if (sessionId != null) result.sessionId = sessionId;
+    if (tokenBudget != null) result.tokenBudget = tokenBudget;
     return result;
   }
 
@@ -563,6 +565,7 @@ class GetMapRequest extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'aider.v1'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sessionId')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'tokenBudget', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -594,6 +597,163 @@ class GetMapRequest extends $pb.GeneratedMessage {
   $core.bool hasSessionId() => $_has(0);
   @$pb.TagNumber(1)
   void clearSessionId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get tokenBudget => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set tokenBudget($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTokenBudget() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTokenBudget() => $_clearField(2);
+}
+
+class SnippetRequest extends $pb.GeneratedMessage {
+  factory SnippetRequest({
+    $core.String? sessionId,
+    $core.String? path,
+    $core.int? line,
+    $core.int? context,
+  }) {
+    final result = create();
+    if (sessionId != null) result.sessionId = sessionId;
+    if (path != null) result.path = path;
+    if (line != null) result.line = line;
+    if (context != null) result.context = context;
+    return result;
+  }
+
+  SnippetRequest._();
+
+  factory SnippetRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SnippetRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SnippetRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'aider.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'sessionId')
+    ..aOS(2, _omitFieldNames ? '' : 'path')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'line', $pb.PbFieldType.O3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'context', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnippetRequest clone() => SnippetRequest()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnippetRequest copyWith(void Function(SnippetRequest) updates) =>
+      super.copyWith((message) => updates(message as SnippetRequest))
+          as SnippetRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SnippetRequest create() => SnippetRequest._();
+  @$core.override
+  SnippetRequest createEmptyInstance() => create();
+  static $pb.PbList<SnippetRequest> createRepeated() =>
+      $pb.PbList<SnippetRequest>();
+  @$core.pragma('dart2js:noInline')
+  static SnippetRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SnippetRequest>(create);
+  static SnippetRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get sessionId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set sessionId($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSessionId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSessionId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get path => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set path($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPath() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPath() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get line => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set line($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLine() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLine() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get context => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set context($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasContext() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearContext() => $_clearField(4);
+}
+
+class SnippetResponse extends $pb.GeneratedMessage {
+  factory SnippetResponse({
+    $core.String? content,
+  }) {
+    final result = create();
+    if (content != null) result.content = content;
+    return result;
+  }
+
+  SnippetResponse._();
+
+  factory SnippetResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SnippetResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SnippetResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'aider.v1'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'content')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnippetResponse clone() => SnippetResponse()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SnippetResponse copyWith(void Function(SnippetResponse) updates) =>
+      super.copyWith((message) => updates(message as SnippetResponse))
+          as SnippetResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SnippetResponse create() => SnippetResponse._();
+  @$core.override
+  SnippetResponse createEmptyInstance() => create();
+  static $pb.PbList<SnippetResponse> createRepeated() =>
+      $pb.PbList<SnippetResponse>();
+  @$core.pragma('dart2js:noInline')
+  static SnippetResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SnippetResponse>(create);
+  static SnippetResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get content => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set content($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasContent() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearContent() => $_clearField(1);
 }
 
 class GetMapResponse extends $pb.GeneratedMessage {

@@ -4,6 +4,8 @@ use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{transport::Server, Request, Response, Status};
 use std::time::Duration;
+use std::cmp::min;
+use serde_json::json;
 
 pub mod pb {
     tonic::include_proto!("aider.v1");
@@ -58,8 +60,35 @@ struct RepoMapSvc;
 
 #[tonic::async_trait]
 impl RepoMapService for RepoMapSvc {
-    async fn get_map(&self, _req: Request<GetMapRequest>) -> Result<Response<GetMapResponse>, Status> {
-        Ok(Response::new(GetMapResponse { map_json: "{}".into() }))
+    async fn get_map(&self, req: Request<GetMapRequest>) -> Result<Response<GetMapResponse>, Status> {
+        let budget = req.into_inner().token_budget;
+        let map = json!({
+            "budget": budget,
+            "total_tokens": 10,
+            "files": [
+                {
+                    "path": "README.md",
+                    "relevance": 0.8,
+                    "tokens": 10,
+                    "symbols": [
+                        {"name": "intro", "line": 1, "relevance": 0.5, "tokens": 5}
+                    ]
+                }
+            ]
+        });
+        Ok(Response::new(GetMapResponse { map_json: map.to_string() }))
+    }
+
+    async fn get_snippet(&self, req: Request<SnippetRequest>) -> Result<Response<SnippetResponse>, Status> {
+        let req = req.into_inner();
+        let content = std::fs::read_to_string(&req.path).unwrap_or_default();
+        let lines: Vec<&str> = content.lines().collect();
+        let line = req.line as usize;
+        let ctx = req.context as usize;
+        let start = if line > ctx { line - ctx - 1 } else { 0 };
+        let end = min(lines.len(), line + ctx);
+        let snippet = lines[start..end].join("\n");
+        Ok(Response::new(SnippetResponse { content: snippet }))
     }
 }
 
