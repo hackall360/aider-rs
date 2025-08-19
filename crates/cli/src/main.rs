@@ -1,3 +1,4 @@
+use aider_core::Mode;
 use anyhow::Result;
 use clap::Parser;
 
@@ -26,6 +27,10 @@ struct Args {
     #[arg(long)]
     dry_run: bool,
 
+    /// Initial chat mode
+    #[arg(long, default_value = "code")]
+    mode: String,
+
     /// Optional prompt to start the session
     #[arg()]
     prompt: Vec<String>,
@@ -41,8 +46,9 @@ async fn main() -> Result<()> {
         Some(args.prompt.join(" "))
     };
 
+    let mode: Mode = args.mode.parse().unwrap_or_default();
     let mut session =
-        aider_core::Session::new(args.model, prompt, args.openai_api_key, args.dry_run);
+        aider_core::Session::new(args.model, prompt, args.openai_api_key, args.dry_run, mode);
     session.run().await?;
     Ok(())
 }
