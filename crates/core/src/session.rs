@@ -62,6 +62,9 @@ pub struct Session {
     root: PathBuf,
     files: HashSet<PathBuf>,
     state_path: PathBuf,
+    no_lint: bool,
+    no_test: bool,
+    max_fix_attempts: u32,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -78,6 +81,9 @@ impl Session {
         api_key: Option<String>,
         dry_run: bool,
         mode: Mode,
+        no_lint: bool,
+        no_test: bool,
+        max_fix_attempts: u32,
     ) -> Self {
         let root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         Self::with_provider(
@@ -86,6 +92,9 @@ impl Session {
             api_key,
             dry_run,
             mode,
+            no_lint,
+            no_test,
+            max_fix_attempts,
             Box::new(MockProvider::default()),
             root,
         )
@@ -97,6 +106,9 @@ impl Session {
         api_key: Option<String>,
         dry_run: bool,
         mode: Mode,
+        no_lint: bool,
+        no_test: bool,
+        max_fix_attempts: u32,
         provider: Box<dyn ModelProvider>,
         root: PathBuf,
     ) -> Self {
@@ -112,6 +124,9 @@ impl Session {
             root,
             files: HashSet::new(),
             state_path,
+            no_lint,
+            no_test,
+            max_fix_attempts,
         };
         session.load_state();
         session
@@ -344,6 +359,9 @@ mod tests {
             None,
             false,
             Mode::Code,
+            false,
+            false,
+            1,
             Box::new(provider.clone()),
             dir.path().to_path_buf(),
         );
@@ -393,6 +411,9 @@ mod tests {
             None,
             false,
             Mode::Code,
+            false,
+            false,
+            1,
             Box::new(provider),
             dir.path().to_path_buf(),
         );
@@ -418,6 +439,9 @@ mod tests {
             None,
             false,
             Mode::Code,
+            false,
+            false,
+            1,
             Box::new(provider),
             dir.path().to_path_buf(),
         );

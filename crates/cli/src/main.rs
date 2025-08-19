@@ -27,6 +27,18 @@ struct Args {
     #[arg(long)]
     dry_run: bool,
 
+    /// Skip running linters
+    #[arg(long)]
+    no_lint: bool,
+
+    /// Skip running tests
+    #[arg(long)]
+    no_test: bool,
+
+    /// Maximum number of automatic fix attempts
+    #[arg(long, default_value_t = 1)]
+    max_fix_attempts: u32,
+
     /// Initial chat mode
     #[arg(long, default_value = "code")]
     mode: String,
@@ -47,8 +59,16 @@ async fn main() -> Result<()> {
     };
 
     let mode: Mode = args.mode.parse().unwrap_or_default();
-    let mut session =
-        aider_core::Session::new(args.model, prompt, args.openai_api_key, args.dry_run, mode);
+    let mut session = aider_core::Session::new(
+        args.model,
+        prompt,
+        args.openai_api_key,
+        args.dry_run,
+        mode,
+        args.no_lint,
+        args.no_test,
+        args.max_fix_attempts,
+    );
     session.run().await?;
     Ok(())
 }
