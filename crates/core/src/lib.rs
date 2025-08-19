@@ -7,11 +7,13 @@ pub mod edit;
 pub mod git;
 pub mod session;
 pub mod watch;
+pub mod runner;
 pub use aider_llm::{mock::MockProvider, ModelProvider};
 pub use command::Command;
 pub use edit::{apply_diff_edit, apply_whole_file_edit};
 pub use git::{GitRepo, RepoStatus};
 pub use session::{Mode, Session};
+pub use runner::{Runner, RustRunner, JsRunner, RunOptions, CommandResult, apply_with_runner};
 pub use watch::FileWatcher;
 
 pub fn init_tracing() -> Result<()> {
