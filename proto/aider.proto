@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package aider.v1;
+
+message OpenRequest {
+  string client_version = 1;
+}
+
+message OpenResponse {
+  string session_id = 1;
+  string server_version = 2;
+}
+
+message CloseRequest {
+  string session_id = 1;
+}
+
+message CloseResponse {}
+
+message SendMessageRequest {
+  string session_id = 1;
+  string message = 2;
+}
+
+message SetFilesRequest {
+  string session_id = 1;
+  repeated File files = 2;
+
+  message File {
+    string path = 1;
+    string content = 2;
+  }
+}
+
+message Empty {}
+
+message TokenChunk {
+  string text = 1;
+  bool done = 2;
+}
+
+message GetMapRequest {
+  string session_id = 1;
+}
+
+message GetMapResponse {
+  string map_json = 1;
+}
+
+message PreviewRequest {
+  string session_id = 1;
+  string diff = 2;
+}
+
+message PreviewResponse {
+  string preview = 1;
+}
+
+message ApplyRequest {
+  string session_id = 1;
+  string diff = 2;
+}
+
+message ApplyResponse {}
+
+service SessionService {
+  rpc Open(OpenRequest) returns (OpenResponse);
+  rpc Close(CloseRequest) returns (CloseResponse);
+  rpc SendMessage(SendMessageRequest) returns (stream TokenChunk);
+  rpc SetFiles(SetFilesRequest) returns (Empty);
+}
+
+service RepoMapService {
+  rpc GetMap(GetMapRequest) returns (GetMapResponse);
+}
+
+service DiffService {
+  rpc Preview(PreviewRequest) returns (PreviewResponse);
+  rpc Apply(ApplyRequest) returns (ApplyResponse);
+}
