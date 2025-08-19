@@ -86,6 +86,8 @@ Add images and web pages to the chat to provide visual context, screenshots, ref
 <a href="https://aider.chat/docs/usage/voice.html"><img src="https://aider.chat/assets/icons/microphone.svg" width="32" height="32" align="left" valign="middle" style="margin-right:10px"></a>
 Speak with aider about your code! Request new features, test cases or bug fixes using your voice and let aider implement the changes.
 
+Run the Rust CLI with `--voice` to capture a short audio snippet and transcribe it locally with [whisper](https://github.com/ggerganov/whisper.cpp). The transcript is inserted as if you had typed it. Recording lasts about five seconds and adds roughly a second of processing with the tiny model. The model path can be overridden with `--voice-model` and the simple voice-activity threshold tuned with `--vad-threshold`.
+
 <br>
 
 ### [Linting & testing](https://aider.chat/docs/usage/lint-test.html)

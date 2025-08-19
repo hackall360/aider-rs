@@ -39,6 +39,18 @@ struct Args {
     #[arg(long, default_value_t = 1)]
     max_fix_attempts: u32,
 
+    /// Enable voice input using whisper
+    #[arg(long)]
+    voice: bool,
+
+    /// Path to the whisper model
+    #[arg(long, default_value = "models/ggml-tiny.en.bin")]
+    voice_model: String,
+
+    /// Voice activity detection threshold
+    #[arg(long, default_value_t = 0.01)]
+    vad_threshold: f32,
+
     /// Initial chat mode
     #[arg(long, default_value = "code")]
     mode: String,
@@ -59,6 +71,14 @@ async fn main() -> Result<()> {
     };
 
     let mode: Mode = args.mode.parse().unwrap_or_default();
+    let voice = if args.voice {
+        Some(aider_core::VoiceTranscriber::new(
+            args.voice_model.into(),
+            args.vad_threshold,
+        ))
+    } else {
+        None
+    };
     let mut session = aider_core::Session::new(
         args.model,
         prompt,
@@ -68,6 +88,7 @@ async fn main() -> Result<()> {
         args.no_lint,
         args.no_test,
         args.max_fix_attempts,
+        voice,
     );
     session.run().await?;
     Ok(())
