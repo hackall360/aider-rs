@@ -28,6 +28,7 @@ pub trait ModelProvider: Send + Sync {
 }
 
 pub mod anthropic;
+pub mod go_proxy;
 pub mod openai;
 
 pub mod mock {
@@ -93,6 +94,11 @@ static REGISTRY: Lazy<HashMap<&'static str, Factory>> = Lazy::new(|| {
     let mut m: HashMap<&'static str, Factory> = HashMap::new();
     m.insert("mock", || Box::new(mock::MockProvider::default()));
     m.insert("mock2", || Box::new(mock::MockProvider::default()));
+    m.insert("go-proxy", || {
+        Box::new(go_proxy::GoProxyProvider::new(
+            go_proxy::GoProxyConfig::from_env(),
+        ))
+    });
     m
 });
 
