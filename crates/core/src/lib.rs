@@ -8,7 +8,7 @@ pub mod session;
 pub mod watch;
 pub use aider_llm::{mock::MockProvider, ModelProvider};
 pub use git::{GitRepo, RepoStatus};
-pub use edit::apply_whole_file_edit;
+pub use edit::{apply_diff_edit, apply_whole_file_edit};
 pub use session::Session;
 pub use watch::FileWatcher;
 
