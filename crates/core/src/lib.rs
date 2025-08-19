@@ -2,14 +2,14 @@ use anyhow::Result;
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
-pub mod git;
 pub mod edit;
+pub mod git;
 pub mod session;
 pub mod watch;
 pub use aider_llm::{mock::MockProvider, ModelProvider};
-pub use git::{GitRepo, RepoStatus};
 pub use edit::{apply_diff_edit, apply_whole_file_edit};
-pub use session::Session;
+pub use git::{GitRepo, RepoStatus};
+pub use session::{Mode, Session};
 pub use watch::FileWatcher;
 
 pub fn init_tracing() -> Result<()> {
