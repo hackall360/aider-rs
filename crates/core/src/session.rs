@@ -5,6 +5,7 @@ use tokio_stream::StreamExt;
 use tracing::{debug, debug_span};
 
 use crate::command::{self, Command};
+use crate::voice::VoiceTranscriber;
 use aider_llm::{get_provider, mock::MockProvider, ChatChunk, ModelProvider};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -65,6 +66,7 @@ pub struct Session {
     no_lint: bool,
     no_test: bool,
     max_fix_attempts: u32,
+    voice: Option<VoiceTranscriber>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -84,6 +86,7 @@ impl Session {
         no_lint: bool,
         no_test: bool,
         max_fix_attempts: u32,
+        voice: Option<VoiceTranscriber>,
     ) -> Self {
         let root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         Self::with_provider(
@@ -95,6 +98,7 @@ impl Session {
             no_lint,
             no_test,
             max_fix_attempts,
+            voice,
             Box::new(MockProvider::default()),
             root,
         )
@@ -109,6 +113,7 @@ impl Session {
         no_lint: bool,
         no_test: bool,
         max_fix_attempts: u32,
+        voice: Option<VoiceTranscriber>,
         provider: Box<dyn ModelProvider>,
         root: PathBuf,
     ) -> Self {
@@ -127,6 +132,7 @@ impl Session {
             no_lint,
             no_test,
             max_fix_attempts,
+            voice,
         };
         session.load_state();
         session
@@ -181,6 +187,16 @@ impl Session {
             }
             let input = line.trim().to_string();
             if input.is_empty() {
+                if let Some(v) = &self.voice {
+                    match v.record_and_transcribe().await {
+                        Ok(text) if !text.is_empty() => {
+                            println!("{text}");
+                            self.handle_message(text).await?;
+                        }
+                        Ok(_) => println!("[voice: no speech detected]"),
+                        Err(err) => println!("[voice error: {err}]"),
+                    }
+                }
                 continue;
             }
             if input == "/exit" || input == "/quit" {
@@ -362,6 +378,7 @@ mod tests {
             false,
             false,
             1,
+            None,
             Box::new(provider.clone()),
             dir.path().to_path_buf(),
         );
@@ -414,6 +431,7 @@ mod tests {
             false,
             false,
             1,
+            None,
             Box::new(provider),
             dir.path().to_path_buf(),
         );
@@ -442,6 +460,7 @@ mod tests {
             false,
             false,
             1,
+            None,
             Box::new(provider),
             dir.path().to_path_buf(),
         );
