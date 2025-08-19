@@ -1,10 +1,14 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt};
 use tokio::signal;
 use tokio_stream::StreamExt;
-use tracing::debug;
+use tracing::{debug, debug_span};
 
-use aider_llm::{mock::MockProvider, ChatChunk, ModelProvider};
+use crate::command::{self, Command};
+use aider_llm::{get_provider, mock::MockProvider, ChatChunk, ModelProvider};
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::path::PathBuf;
 
 /// Available chat modes that control prompting strategy.
 #[derive(Debug, Clone)]
@@ -55,6 +59,15 @@ pub struct Session {
     history: Vec<String>,
     provider: Box<dyn ModelProvider>,
     mode: Mode,
+    root: PathBuf,
+    files: HashSet<PathBuf>,
+    state_path: PathBuf,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+struct SessionState {
+    model: String,
+    files: Vec<PathBuf>,
 }
 
 impl Session {
@@ -66,6 +79,7 @@ impl Session {
         dry_run: bool,
         mode: Mode,
     ) -> Self {
+        let root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         Self::with_provider(
             model_name,
             prompt,
@@ -73,6 +87,7 @@ impl Session {
             dry_run,
             mode,
             Box::new(MockProvider::default()),
+            root,
         )
     }
 
@@ -83,8 +98,10 @@ impl Session {
         dry_run: bool,
         mode: Mode,
         provider: Box<dyn ModelProvider>,
+        root: PathBuf,
     ) -> Self {
-        Self {
+        let state_path = root.join(".aider.session");
+        let mut session = Self {
             model_name,
             prompt,
             api_key,
@@ -92,6 +109,30 @@ impl Session {
             history: Vec::new(),
             provider,
             mode,
+            root,
+            files: HashSet::new(),
+            state_path,
+        };
+        session.load_state();
+        session
+    }
+
+    fn load_state(&mut self) {
+        if let Ok(data) = std::fs::read_to_string(&self.state_path) {
+            if let Ok(state) = serde_yaml::from_str::<SessionState>(&data) {
+                self.model_name = state.model;
+                self.files = state.files.into_iter().collect();
+            }
+        }
+    }
+
+    fn save_state(&self) {
+        let state = SessionState {
+            model: self.model_name.clone(),
+            files: self.files.iter().cloned().collect(),
+        };
+        if let Ok(text) = serde_yaml::to_string(&state) {
+            let _ = std::fs::write(&self.state_path, text);
         }
     }
 
@@ -136,6 +177,16 @@ impl Session {
     }
 
     async fn handle_message(&mut self, message: String) -> Result<()> {
+        if let Some(cmd) = command::parse(&message) {
+            let out = match self.handle_command(cmd) {
+                Ok(s) => s,
+                Err(err) => err.to_string(),
+            };
+            if !out.is_empty() {
+                println!("{out}");
+            }
+            return Ok(());
+        }
         if let Some(rest) = message.strip_prefix("/mode ") {
             match rest.parse::<Mode>() {
                 Ok(mode) => {
@@ -151,11 +202,6 @@ impl Session {
                 .await?;
             return Ok(());
         }
-        if let Some(rest) = message.strip_prefix("/help ") {
-            self.stream_reply_with_mode(Mode::Help, rest.to_string())
-                .await?;
-            return Ok(());
-        }
         if let Some(rest) = message.strip_prefix("/architect ") {
             self.stream_reply_with_mode(Mode::Architect, rest.to_string())
                 .await?;
@@ -166,10 +212,76 @@ impl Session {
                 .await?;
             return Ok(());
         }
+        if message.starts_with('/') {
+            let name = message[1..].split_whitespace().next().unwrap_or("");
+            println!("unknown command: {name}");
+            return Ok(());
+        }
         self.history.push(message.clone());
         self.stream_reply_with_mode(self.mode.clone(), message)
             .await?;
         Ok(())
+    }
+
+    fn handle_command(&mut self, cmd: Command) -> Result<String> {
+        let span = debug_span!("command", ?cmd);
+        let _enter = span.enter();
+        match cmd {
+            Command::Add(paths) => {
+                if paths.is_empty() {
+                    return Err(anyhow!("no paths provided"));
+                }
+                for p in paths {
+                    let abs = self.root.join(&p);
+                    let canon = abs
+                        .canonicalize()
+                        .map_err(|_| anyhow!("invalid path: {}", p.display()))?;
+                    if !canon.starts_with(&self.root) {
+                        return Err(anyhow!("path outside repository: {}", p.display()));
+                    }
+                    let rel = canon.strip_prefix(&self.root).unwrap().to_path_buf();
+                    self.files.insert(rel);
+                }
+                self.save_state();
+                Ok("Files added".into())
+            }
+            Command::Drop(paths) => {
+                if paths.is_empty() {
+                    return Err(anyhow!("no paths provided"));
+                }
+                for p in paths {
+                    let abs = self.root.join(&p);
+                    let canon = abs
+                        .canonicalize()
+                        .map_err(|_| anyhow!("invalid path: {}", p.display()))?;
+                    let rel = canon.strip_prefix(&self.root).unwrap().to_path_buf();
+                    if !self.files.remove(&rel) {
+                        return Err(anyhow!("file not in session: {}", rel.display()));
+                    }
+                }
+                self.save_state();
+                Ok("Files dropped".into())
+            }
+            Command::Model(name) => {
+                if name.is_empty() {
+                    return Err(anyhow!("no model specified"));
+                }
+                match get_provider(&name) {
+                    Some(p) => {
+                        self.model_name = name;
+                        self.provider = p;
+                        self.save_state();
+                        Ok("Model switched".into())
+                    }
+                    None => Err(anyhow!("unknown model: {}", name)),
+                }
+            }
+            Command::Help => Ok(format!(
+                "Commands: /add, /drop, /model, /help\nActive model: {}\nFiles tracked: {}",
+                self.model_name,
+                self.files.len()
+            )),
+        }
     }
 
     async fn stream_reply_with_mode(&self, mode: Mode, message: String) -> Result<()> {
@@ -213,8 +325,10 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::command;
     use aider_llm::ChatChunk;
     use aider_llm::Usage;
+    use std::path::PathBuf;
     use std::sync::{Arc, Mutex};
     use tokio::sync::mpsc;
     use tokio_stream::wrappers::ReceiverStream;
@@ -222,6 +336,7 @@ mod tests {
 
     #[tokio::test]
     async fn session_uses_mock_provider() {
+        let dir = tempfile::tempdir().unwrap();
         let provider = MockProvider::new_with_tokens(vec!["hi".into()]);
         let session = Session::with_provider(
             "mock".into(),
@@ -230,6 +345,7 @@ mod tests {
             false,
             Mode::Code,
             Box::new(provider.clone()),
+            dir.path().to_path_buf(),
         );
         let stream = provider.chat("ignored".into());
         let chunks: Vec<ChatChunk> = stream.collect().await;
@@ -268,6 +384,7 @@ mod tests {
 
     #[tokio::test]
     async fn mode_affects_prompt() {
+        let dir = tempfile::tempdir().unwrap();
         let last = Arc::new(Mutex::new(None));
         let provider = CaptureProvider { last: last.clone() };
         let mut session = Session::with_provider(
@@ -277,6 +394,7 @@ mod tests {
             false,
             Mode::Code,
             Box::new(provider),
+            dir.path().to_path_buf(),
         );
         session.handle_message("hi".into()).await.unwrap();
         let prompt1 = last.lock().unwrap().clone().unwrap();
@@ -286,5 +404,47 @@ mod tests {
         session.handle_message("question".into()).await.unwrap();
         let prompt2 = last.lock().unwrap().clone().unwrap();
         assert!(prompt2.starts_with(Mode::Help.system_prompt()));
+    }
+
+    #[tokio::test]
+    async fn commands_update_state() {
+        use std::fs;
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("file.txt"), "hi").unwrap();
+        let provider = MockProvider::default();
+        let mut session = Session::with_provider(
+            "mock".into(),
+            None,
+            None,
+            false,
+            Mode::Code,
+            Box::new(provider),
+            dir.path().to_path_buf(),
+        );
+
+        // add file
+        let cmd = command::parse("/add file.txt").unwrap();
+        session.handle_command(cmd).unwrap();
+        assert!(session.files.contains(&PathBuf::from("file.txt")));
+        let state = fs::read_to_string(dir.path().join(".aider.session")).unwrap();
+        assert!(state.contains("file.txt"));
+
+        // switch model
+        let cmd = command::parse("/model mock2").unwrap();
+        session.handle_command(cmd).unwrap();
+        assert_eq!(session.model_name, "mock2");
+
+        // help output
+        let cmd = command::parse("/help").unwrap();
+        let out = session.handle_command(cmd).unwrap();
+        assert!(out.contains("mock2"));
+        assert!(out.contains("Files tracked: 1"));
+
+        // drop file
+        let cmd = command::parse("/drop file.txt").unwrap();
+        session.handle_command(cmd).unwrap();
+        assert!(session.files.is_empty());
+        let state = fs::read_to_string(dir.path().join(".aider.session")).unwrap();
+        assert!(!state.contains("file.txt"));
     }
 }

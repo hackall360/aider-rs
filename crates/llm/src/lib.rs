@@ -84,6 +84,23 @@ pub mod mock {
     }
 }
 
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+
+type Factory = fn() -> Box<dyn ModelProvider>;
+
+static REGISTRY: Lazy<HashMap<&'static str, Factory>> = Lazy::new(|| {
+    let mut m: HashMap<&'static str, Factory> = HashMap::new();
+    m.insert("mock", || Box::new(mock::MockProvider::default()));
+    m.insert("mock2", || Box::new(mock::MockProvider::default()));
+    m
+});
+
+/// Return a provider for the given model name or alias.
+pub fn get_provider(name: &str) -> Option<Box<dyn ModelProvider>> {
+    REGISTRY.get(name).map(|f| f())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
