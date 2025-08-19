@@ -134,12 +134,13 @@ const GetMapRequest$json = {
   '1': 'GetMapRequest',
   '2': [
     {'1': 'session_id', '3': 1, '4': 1, '5': 9, '10': 'sessionId'},
+    {'1': 'token_budget', '3': 2, '4': 1, '5': 5, '10': 'tokenBudget'},
   ],
 };
 
 /// Descriptor for `GetMapRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getMapRequestDescriptor = $convert.base64Decode(
-    'Cg1HZXRNYXBSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZA==');
+    'Cg1HZXRNYXBSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIkCgx0b2tlbl9idWRnZXQYAiABKAVSC3Rva2VuQnVkZ2V0');
 
 @$core.Deprecated('Use getMapResponseDescriptor instead')
 const GetMapResponse$json = {
@@ -152,6 +153,33 @@ const GetMapResponse$json = {
 /// Descriptor for `GetMapResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List getMapResponseDescriptor = $convert.base64Decode(
     'Cg5HZXRNYXBSZXNwb25zZRIZCghtYXBfanNvbhgBIAEoCVIHbWFwSnNvbg==');
+
+@$core.Deprecated('Use snippetRequestDescriptor instead')
+const SnippetRequest$json = {
+  '1': 'SnippetRequest',
+  '2': [
+    {'1': 'session_id', '3': 1, '4': 1, '5': 9, '10': 'sessionId'},
+    {'1': 'path', '3': 2, '4': 1, '5': 9, '10': 'path'},
+    {'1': 'line', '3': 3, '4': 1, '5': 5, '10': 'line'},
+    {'1': 'context', '3': 4, '4': 1, '5': 5, '10': 'context'},
+  ],
+};
+
+/// Descriptor for `SnippetRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List snippetRequestDescriptor =
+    $convert.base64Decode('');
+
+@$core.Deprecated('Use snippetResponseDescriptor instead')
+const SnippetResponse$json = {
+  '1': 'SnippetResponse',
+  '2': [
+    {'1': 'content', '3': 1, '4': 1, '5': 9, '10': 'content'},
+  ],
+};
+
+/// Descriptor for `SnippetResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List snippetResponseDescriptor =
+    $convert.base64Decode('');
 
 @$core.Deprecated('Use previewRequestDescriptor instead')
 const PreviewRequest$json = {

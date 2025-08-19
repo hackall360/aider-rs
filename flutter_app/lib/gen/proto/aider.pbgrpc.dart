@@ -171,6 +171,13 @@ class RepoMapServiceClient extends $grpc.Client {
     return $createUnaryCall(_$getMap, request, options: options);
   }
 
+  $grpc.ResponseFuture<$0.SnippetResponse> getSnippet(
+    $0.SnippetRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$getSnippet, request, options: options);
+  }
+
   // method descriptors
 
   static final _$getMap =
@@ -178,6 +185,11 @@ class RepoMapServiceClient extends $grpc.Client {
           '/aider.v1.RepoMapService/GetMap',
           ($0.GetMapRequest value) => value.writeToBuffer(),
           $0.GetMapResponse.fromBuffer);
+  static final _$getSnippet =
+      $grpc.ClientMethod<$0.SnippetRequest, $0.SnippetResponse>(
+          '/aider.v1.RepoMapService/GetSnippet',
+          ($0.SnippetRequest value) => value.writeToBuffer(),
+          $0.SnippetResponse.fromBuffer);
 }
 
 @$pb.GrpcServiceName('aider.v1.RepoMapService')
@@ -192,6 +204,13 @@ abstract class RepoMapServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $0.GetMapRequest.fromBuffer(value),
         ($0.GetMapResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.SnippetRequest, $0.SnippetResponse>(
+        'GetSnippet',
+        getSnippet_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) => $0.SnippetRequest.fromBuffer(value),
+        ($0.SnippetResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.GetMapResponse> getMap_Pre(
@@ -199,8 +218,16 @@ abstract class RepoMapServiceBase extends $grpc.Service {
     return getMap($call, await $request);
   }
 
+  $async.Future<$0.SnippetResponse> getSnippet_Pre(
+      $grpc.ServiceCall $call, $async.Future<$0.SnippetRequest> $request) async {
+    return getSnippet($call, await $request);
+  }
+
   $async.Future<$0.GetMapResponse> getMap(
       $grpc.ServiceCall call, $0.GetMapRequest request);
+
+  $async.Future<$0.SnippetResponse> getSnippet(
+      $grpc.ServiceCall call, $0.SnippetRequest request);
 }
 
 @$pb.GrpcServiceName('aider.v1.DiffService')

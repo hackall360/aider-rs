@@ -14,6 +14,7 @@ serde = { workspace = true }
 semver = { workspace = true }
 uuid = { workspace = true }
 prost = { workspace = true }
+serde_json = { version = "1" }
 
 [build-dependencies]
 tonic-build = "0.10"

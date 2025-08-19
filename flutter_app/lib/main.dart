@@ -232,44 +232,111 @@ class FilesPage extends StatefulWidget {
 }
 
 class _FilesPageState extends State<FilesPage> {
-  late Future<List<String>> _files;
-  final Set<String> _selected = {};
+  List<_FileInfo> _files = [];
+  int _budget = 200;
+  int _totalTokens = 0;
+  String _filter = '';
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _files = _load();
+    _load();
   }
 
-  Future<List<String>> _load() async {
+  Future<void> _load() async {
+    setState(() => _loading = true);
     final resp = await widget.connection.repoMap.getMap(
-      GetMapRequest(sessionId: widget.connection.sessionId),
+      GetMapRequest(
+          sessionId: widget.connection.sessionId, tokenBudget: _budget),
     );
     final data = jsonDecode(resp.mapJson);
-    final List<String> out = [];
-    if (data is Map && data['files'] is List) {
-      for (var f in data['files']) {
-        if (f is String) {
-          out.add(f);
-        } else if (f is Map && f['path'] is String) {
-          out.add(f['path'] as String);
+    final List<_FileInfo> files = [];
+    if (data is Map) {
+      _totalTokens = data['total_tokens'] ?? 0;
+      if (data['files'] is List) {
+        for (var f in data['files']) {
+          if (f is Map) {
+            final symbols = <_SymbolInfo>[];
+            if (f['symbols'] is List) {
+              for (var s in f['symbols']) {
+                if (s is Map && s['name'] is String) {
+                  symbols.add(_SymbolInfo(
+                      name: s['name'] as String,
+                      line: s['line'] ?? 0,
+                      relevance: (s['relevance'] ?? 0).toDouble(),
+                      tokens: s['tokens'] ?? 0));
+                }
+              }
+            }
+            files.add(_FileInfo(
+                path: f['path'] ?? '',
+                relevance: (f['relevance'] ?? 0).toDouble(),
+                tokens: f['tokens'] ?? 0,
+                symbols: symbols));
+          }
         }
       }
     }
-    return out;
+    setState(() {
+      _files = files;
+      _loading = false;
+    });
   }
 
-  Future<void> _toggle(String path, bool checked) async {
-    setState(() {
-      if (checked) {
-        _selected.add(path);
-      } else {
-        _selected.remove(path);
-      }
-    });
-    final files = _selected
-        .map((p) => SetFilesRequest_File(path: p, content: ''))
+  List<_FileInfo> get _visibleFiles {
+    if (_filter.isEmpty) return _files;
+    return _files
+        .map((f) => _FileInfo(
+            path: f.path,
+            relevance: f.relevance,
+            tokens: f.tokens,
+            symbols: f.symbols
+                .where((s) => s.name.toLowerCase().contains(_filter))
+                .toList()))
+        .where((f) => f.symbols.isNotEmpty)
         .toList();
+  }
+
+  Future<void> _showSnippet(_FileInfo file, _SymbolInfo sym) async {
+    final resp = await widget.connection.repoMap.getSnippet(
+      SnippetRequest(
+          sessionId: widget.connection.sessionId,
+          path: file.path,
+          line: sym.line,
+          context: 2),
+    );
+    if (!mounted) return;
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(resp.content, style: const TextStyle(fontFamily: 'monospace')),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _addFile(file.path);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: const Text('Add to context'),
+                ),
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _addFile(String path) async {
+    final files = [SetFilesRequest_File(path: path, content: '')];
     await widget.connection.session.setFiles(
       SetFilesRequest(sessionId: widget.connection.sessionId, files: files),
     );
@@ -277,25 +344,85 @@ class _FilesPageState extends State<FilesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<String>>(
-      future: _files,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final files = snapshot.data!;
-        return ListView(
-          children: files
-              .map(
-                (f) => CheckboxListTile(
-                  title: Text(f),
-                  value: _selected.contains(f),
-                  onChanged: (v) => _toggle(f, v ?? false),
-                ),
-              )
-              .toList(),
-        );
-      },
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final overBudget = _totalTokens > _budget;
+    final files = _visibleFiles;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: TextField(
+            decoration: const InputDecoration(labelText: 'Filter symbols'),
+            onChanged: (v) => setState(() => _filter = v.toLowerCase()),
+          ),
+        ),
+        if (overBudget)
+          const Text('Over budget', style: TextStyle(color: Colors.red)),
+        Slider(
+          value: _budget.toDouble(),
+          min: 50,
+          max: 1000,
+          divisions: 19,
+          label: '$_budget',
+          onChanged: (v) => setState(() => _budget = v.toInt()),
+          onChangeEnd: (v) => _load(),
+        ),
+        Expanded(
+          child: ListView(
+            children: files
+                .map(
+                  (f) => ExpansionTile(
+                    title: Text(f.path),
+                    subtitle: Row(
+                      children: [
+                        Chip(label: Text('r ${f.relevance.toStringAsFixed(2)}')),
+                        const SizedBox(width: 8),
+                        Chip(label: Text('${f.tokens}t')),
+                      ],
+                    ),
+                    children: f.symbols
+                        .where((s) =>
+                            _filter.isEmpty ||
+                            s.name.toLowerCase().contains(_filter))
+                        .map(
+                          (s) => ListTile(
+                            title: Text(s.name),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Chip(label: Text('r ${s.relevance.toStringAsFixed(2)}')),
+                                const SizedBox(width: 8),
+                                Chip(label: Text('${s.tokens}t')),
+                              ],
+                            ),
+                            onTap: () => _showSnippet(f, s),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ],
     );
   }
+}
+
+class _FileInfo {
+  final String path;
+  final double relevance;
+  final int tokens;
+  final List<_SymbolInfo> symbols;
+  _FileInfo({required this.path, required this.relevance, required this.tokens, required this.symbols});
+}
+
+class _SymbolInfo {
+  final String name;
+  final int line;
+  final double relevance;
+  final int tokens;
+  _SymbolInfo({required this.name, required this.line, required this.relevance, required this.tokens});
 }

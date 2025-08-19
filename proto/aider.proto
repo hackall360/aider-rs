@@ -41,10 +41,22 @@ message TokenChunk {
 
 message GetMapRequest {
   string session_id = 1;
+  uint32 token_budget = 2;
 }
 
 message GetMapResponse {
   string map_json = 1;
+}
+
+message SnippetRequest {
+  string session_id = 1;
+  string path = 2;
+  uint32 line = 3;
+  uint32 context = 4;
+}
+
+message SnippetResponse {
+  string content = 1;
 }
 
 message PreviewRequest {
@@ -72,6 +84,7 @@ service SessionService {
 
 service RepoMapService {
   rpc GetMap(GetMapRequest) returns (GetMapResponse);
+  rpc GetSnippet(SnippetRequest) returns (SnippetResponse);
 }
 
 service DiffService {
