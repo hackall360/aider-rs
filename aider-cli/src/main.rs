@@ -1,6 +1,5 @@
 mod analytics;
 mod args;
-mod config;
 mod history;
 mod prompts;
 mod repo;
@@ -15,7 +14,7 @@ use tracing::info;
 use tracing_subscriber::{fmt::format::FmtSpan, EnvFilter};
 
 use args::CliArgs;
-use config::Config;
+use aider_utils::Config;
 
 fn run() -> Result<()> {
     // Parse command line options using `clap`.
@@ -24,21 +23,24 @@ fn run() -> Result<()> {
     // Load configuration and optionally save it back.
     let mut config = Config::load(args.config.as_deref())?;
     if args.verbose {
-        config.verbose = true;
+        config.verbose = Some(true);
     }
     if args.show_usage {
-        config.show_usage = true;
+        config.show_usage = Some(true);
     }
     if args.no_reasoning_tokens {
-        config.reasoning_tokens = false;
+        config.reasoning_tokens = Some(false);
     }
 
     // Set up structured logging.
-    let level =
-        config
-            .log_level
-            .as_deref()
-            .unwrap_or(if config.verbose { "debug" } else { "info" });
+    let level = config
+        .log_level
+        .as_deref()
+        .unwrap_or(if config.verbose.unwrap_or(false) {
+            "debug"
+        } else {
+            "info"
+        });
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::new(level))
         .with_span_events(FmtSpan::CLOSE)
@@ -83,7 +85,7 @@ fn run() -> Result<()> {
     let _meta = resources::load_json("resources/model-metadata.json")?;
     let _settings = resources::load_yaml("resources/model-settings.yml")?;
 
-    if config.show_usage {
+    if config.show_usage.unwrap_or(false) {
         let meta = resources::load_json("resources/model-metadata.json")?;
         let mut tracker = usage::UsageTracker::new("deepseek-reasoner", meta);
         println!(
