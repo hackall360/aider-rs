@@ -31,10 +31,10 @@ name = "aider-cli"
 version = "0.1.0"
 dependencies = [
  "aider-llm",
+ "aider-utils",
  "anyhow",
  "assert_cmd",
  "clap",
- "directories",
  "ignore",
  "notify",
  "serde",
@@ -65,6 +65,16 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-stream",
+]
+
+[[package]]
+name = "aider-utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "directories",
+ "serde",
+ "serde_yaml",
 ]
 
 [[package]]

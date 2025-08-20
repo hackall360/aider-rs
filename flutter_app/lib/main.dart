@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'grpc_client.dart';
 import 'gen/proto/aider.pbgrpc.dart';
+import 'settings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -110,6 +111,7 @@ class _HomePageState extends State<HomePage> {
     final pages = [
       ChatPage(connection: widget.connection),
       FilesPage(connection: widget.connection),
+      const SettingsPage(),
     ];
     return Scaffold(
       body: pages[_index],
@@ -119,6 +121,7 @@ class _HomePageState extends State<HomePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
           BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Files'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );
