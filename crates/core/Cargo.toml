@@ -30,8 +30,11 @@ tonic = { workspace = true }
 tokio-stream = { workspace = true }
 tower = { workspace = true }
 rustls = { workspace = true }
+scraper = { workspace = true }
+url = { workspace = true }
 cpal = "0.15"
 whisper-rs = "0.15"
 
 [dev-dependencies]
 tempfile = "3"
+httpmock = "0.6"

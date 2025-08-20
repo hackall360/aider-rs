@@ -1,18 +1,23 @@
-use axum::{extract::{Path, WebSocketUpgrade}, response::IntoResponse, routing::get, Router};
 use axum::extract::ws::{Message, WebSocket};
+use axum::{
+    extract::{Path, WebSocketUpgrade},
+    response::IntoResponse,
+    routing::get,
+    Router,
+};
+use serde_json::json;
+use std::cmp::min;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{transport::Server, Request, Response, Status};
-use std::time::Duration;
-use std::cmp::min;
-use serde_json::json;
 
 pub mod pb {
     tonic::include_proto!("aider.v1");
 }
-use pb::session_service_server::{SessionService, SessionServiceServer};
-use pb::repo_map_service_server::{RepoMapService, RepoMapServiceServer};
 use pb::diff_service_server::{DiffService, DiffServiceServer};
+use pb::repo_map_service_server::{RepoMapService, RepoMapServiceServer};
+use pb::session_service_server::{SessionService, SessionServiceServer};
 use pb::*;
 
 const SERVER_VERSION: &str = "1.0.0";
@@ -24,7 +29,8 @@ struct SessionSvc;
 impl SessionService for SessionSvc {
     async fn open(&self, request: Request<OpenRequest>) -> Result<Response<OpenResponse>, Status> {
         let req = request.into_inner();
-        let client = semver::Version::parse(&req.client_version).unwrap_or_else(|_| semver::Version::new(0,0,0));
+        let client = semver::Version::parse(&req.client_version)
+            .unwrap_or_else(|_| semver::Version::new(0, 0, 0));
         let server = semver::Version::parse(SERVER_VERSION).unwrap();
         if client.major != server.major {
             return Err(Status::failed_precondition("incompatible client"));
@@ -41,11 +47,24 @@ impl SessionService for SessionSvc {
 
     type SendMessageStream = ReceiverStream<Result<TokenChunk, Status>>;
 
-    async fn send_message(&self, _req: Request<SendMessageRequest>) -> Result<Response<Self::SendMessageStream>, Status> {
+    async fn send_message(
+        &self,
+        _req: Request<SendMessageRequest>,
+    ) -> Result<Response<Self::SendMessageStream>, Status> {
         let (tx, rx) = mpsc::channel(4);
         tokio::spawn(async move {
-            let _ = tx.send(Ok(TokenChunk{ text: "hello".into(), done: false })).await;
-            let _ = tx.send(Ok(TokenChunk{ text: "".into(), done: true })).await;
+            let _ = tx
+                .send(Ok(TokenChunk {
+                    text: "hello".into(),
+                    done: false,
+                }))
+                .await;
+            let _ = tx
+                .send(Ok(TokenChunk {
+                    text: "".into(),
+                    done: true,
+                }))
+                .await;
         });
         Ok(Response::new(ReceiverStream::new(rx)))
     }
@@ -60,7 +79,10 @@ struct RepoMapSvc;
 
 #[tonic::async_trait]
 impl RepoMapService for RepoMapSvc {
-    async fn get_map(&self, req: Request<GetMapRequest>) -> Result<Response<GetMapResponse>, Status> {
+    async fn get_map(
+        &self,
+        req: Request<GetMapRequest>,
+    ) -> Result<Response<GetMapResponse>, Status> {
         let budget = req.into_inner().token_budget;
         let map = json!({
             "budget": budget,
@@ -76,10 +98,15 @@ impl RepoMapService for RepoMapSvc {
                 }
             ]
         });
-        Ok(Response::new(GetMapResponse { map_json: map.to_string() }))
+        Ok(Response::new(GetMapResponse {
+            map_json: map.to_string(),
+        }))
     }
 
-    async fn get_snippet(&self, req: Request<SnippetRequest>) -> Result<Response<SnippetResponse>, Status> {
+    async fn get_snippet(
+        &self,
+        req: Request<SnippetRequest>,
+    ) -> Result<Response<SnippetResponse>, Status> {
         let req = req.into_inner();
         let content = std::fs::read_to_string(&req.path).unwrap_or_default();
         let lines: Vec<&str> = content.lines().collect();
@@ -97,7 +124,10 @@ struct DiffSvc;
 
 #[tonic::async_trait]
 impl DiffService for DiffSvc {
-    async fn preview(&self, _req: Request<PreviewRequest>) -> Result<Response<PreviewResponse>, Status> {
+    async fn preview(
+        &self,
+        _req: Request<PreviewRequest>,
+    ) -> Result<Response<PreviewResponse>, Status> {
         Ok(Response::new(PreviewResponse { preview: "".into() }))
     }
 
@@ -127,9 +157,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let grpc_addr = "[::1]:50051".parse().unwrap();
 
     let grpc_server = Server::builder()
-        .add_service(SessionServiceServer::new(SessionSvc::default()))
-        .add_service(RepoMapServiceServer::new(RepoMapSvc::default()))
-        .add_service(DiffServiceServer::new(DiffSvc::default()))
+        .add_service(SessionServiceServer::new(SessionSvc))
+        .add_service(RepoMapServiceServer::new(RepoMapSvc))
+        .add_service(DiffServiceServer::new(DiffSvc))
         .serve(grpc_addr);
 
     let ws_app = Router::new().route("/stream/:session_id", get(ws_handler));
@@ -137,8 +167,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let ws_server = axum::serve(listener, ws_app);
 
     tokio::try_join!(
-        async { grpc_server.await.map_err(|e| Box::<dyn std::error::Error + Send + Sync>::from(e)) },
-        async { ws_server.await.map_err(|e| Box::<dyn std::error::Error + Send + Sync>::from(e)) },
+        async {
+            grpc_server
+                .await
+                .map_err(Box::<dyn std::error::Error + Send + Sync>::from)
+        },
+        async {
+            ws_server
+                .await
+                .map_err(Box::<dyn std::error::Error + Send + Sync>::from)
+        },
     )?;
     Ok(())
 }

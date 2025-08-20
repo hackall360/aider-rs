@@ -1,12 +1,12 @@
+use aider_core::{apply_with_runner, GitRepo, ModelProvider, RunOptions, RustRunner};
+use aider_llm::{ChatChunk, Usage};
+use anyhow::Result;
 use std::fs;
 use std::path::PathBuf;
-use anyhow::Result;
-use aider_core::{apply_with_runner, GitRepo, RunOptions, RustRunner, ModelProvider};
-use aider_llm::{ChatChunk, Usage};
+use std::sync::Mutex;
+use tempfile::tempdir;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
-use tempfile::tempdir;
-use std::sync::Mutex;
 
 struct SeqProvider {
     responses: Mutex<Vec<Vec<String>>>,
@@ -14,7 +14,9 @@ struct SeqProvider {
 
 impl SeqProvider {
     fn new(responses: Vec<Vec<String>>) -> Self {
-        Self { responses: Mutex::new(responses) }
+        Self {
+            responses: Mutex::new(responses),
+        }
     }
 }
 
@@ -22,7 +24,11 @@ impl ModelProvider for SeqProvider {
     fn chat(&self, _prompt: String) -> ReceiverStream<ChatChunk> {
         let tokens = {
             let mut lock = self.responses.lock().unwrap();
-            if lock.is_empty() { Vec::new() } else { lock.remove(0) }
+            if lock.is_empty() {
+                Vec::new()
+            } else {
+                lock.remove(0)
+            }
         };
         let (tx, rx) = mpsc::channel(32);
         tokio::spawn(async move {
@@ -56,12 +62,18 @@ async fn auto_fix_rust_runner() -> Result<()> {
     git.stage(PathBuf::from("src/lib.rs"))?;
     git.commit("init")?;
 
-    let bug_patch = "```diff\n@@\n-pub fn add(a:i32,b:i32)->i32{a+b}\n+pub fn add(a:i32,b:i32)->i32{a-b}\n```";
-    let fix_patch = "```diff\n@@\n-pub fn add(a:i32,b:i32)->i32{a-b}\n+pub fn add(a:i32,b:i32)->i32{a+b}\n```";
+    let bug_patch =
+        "```diff\n@@\n-pub fn add(a:i32,b:i32)->i32{a+b}\n+pub fn add(a:i32,b:i32)->i32{a-b}\n```";
+    let fix_patch =
+        "```diff\n@@\n-pub fn add(a:i32,b:i32)->i32{a-b}\n+pub fn add(a:i32,b:i32)->i32{a+b}\n```";
     let provider = SeqProvider::new(vec![vec![bug_patch.into()], vec![fix_patch.into()]]);
     let runner = RustRunner::new(dir.path());
     let file_rel = PathBuf::from("src/lib.rs");
-    let opts = RunOptions { no_lint: true, no_test: false, max_fix_attempts: 1 };
+    let opts = RunOptions {
+        no_lint: true,
+        no_test: false,
+        max_fix_attempts: 1,
+    };
     let results = apply_with_runner(
         &provider,
         &git,
@@ -75,4 +87,3 @@ async fn auto_fix_rust_runner() -> Result<()> {
     assert!(results.iter().all(|r| r.status == 0));
     Ok(())
 }
-

@@ -40,3 +40,5 @@ uuid = { version = "1", features = ["v4"] }
 prost = "0.12"
 tower = "0.4"
 rustls = "0.21"
+scraper = "0.17"
+url = "2"

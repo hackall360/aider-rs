@@ -4,6 +4,7 @@ use std::path::PathBuf;
 #[derive(Debug, PartialEq, Eq)]
 pub enum Command {
     Add(Vec<PathBuf>),
+    AddUrl(Vec<String>),
     Drop(Vec<PathBuf>),
     Model(String),
     Help,
@@ -20,6 +21,7 @@ pub fn parse(input: &str) -> Option<Command> {
     let cmd = parts.next()?.to_lowercase();
     let command = match cmd.as_str() {
         "add" => Command::Add(parts.map(PathBuf::from).collect()),
+        "add-url" => Command::AddUrl(parts.map(|s| s.to_string()).collect()),
         "drop" => Command::Drop(parts.map(PathBuf::from).collect()),
         "model" => Command::Model(parts.next().unwrap_or("").to_string()),
         "help" => Command::Help,

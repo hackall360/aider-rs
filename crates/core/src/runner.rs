@@ -1,6 +1,6 @@
+use anyhow::Result;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use anyhow::Result;
 
 /// Result of running a command.
 #[derive(Debug, Default, Clone)]
@@ -36,7 +36,9 @@ pub struct RustRunner {
 
 impl RustRunner {
     pub fn new(root: impl AsRef<Path>) -> Self {
-        Self { root: root.as_ref().to_path_buf() }
+        Self {
+            root: root.as_ref().to_path_buf(),
+        }
     }
 }
 
@@ -68,7 +70,9 @@ pub struct JsRunner {
 
 impl JsRunner {
     pub fn new(root: impl AsRef<Path>) -> Self {
-        Self { root: root.as_ref().to_path_buf() }
+        Self {
+            root: root.as_ref().to_path_buf(),
+        }
     }
 }
 
@@ -152,4 +156,3 @@ pub async fn apply_with_runner(
         crate::apply_diff_edit(provider, repo, file, &fix_request, "auto-fix").await?;
     }
 }
-
