@@ -1,5 +1,5 @@
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 use diffy::{apply, Patch};
 
@@ -122,12 +122,12 @@ fn extract_fenced_code(text: &str) -> Result<String> {
 mod tests {
     use super::*;
     use aider_llm::{mock::MockProvider, ChatChunk, ModelProvider, Usage};
-    use tempfile::tempdir;
-    use std::path::PathBuf;
     use git2::Repository;
+    use std::path::PathBuf;
+    use std::sync::Mutex;
+    use tempfile::tempdir;
     use tokio::sync::mpsc;
     use tokio_stream::wrappers::ReceiverStream;
-    use std::sync::Mutex;
 
     #[tokio::test]
     async fn whole_file_edit_commits_changes() -> Result<()> {

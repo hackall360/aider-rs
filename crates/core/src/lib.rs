@@ -7,6 +7,7 @@ pub mod edit;
 pub mod git;
 pub mod runner;
 pub mod session;
+pub mod url;
 pub mod voice;
 pub mod watch;
 pub use aider_llm::{mock::MockProvider, ModelProvider};

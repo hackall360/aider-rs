@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt};
+use tokio::process::Command as TokioCommand;
 use tokio::signal;
 use tokio_stream::StreamExt;
 use tracing::{debug, debug_span};
@@ -8,7 +9,7 @@ use crate::command::{self, Command};
 use crate::voice::VoiceTranscriber;
 use aider_llm::{get_provider, mock::MockProvider, ChatChunk, ModelProvider};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 /// Available chat modes that control prompting strategy.
@@ -62,6 +63,8 @@ pub struct Session {
     mode: Mode,
     root: PathBuf,
     files: HashSet<PathBuf>,
+    urls: HashMap<String, String>,
+    images: HashMap<PathBuf, String>,
     state_path: PathBuf,
     no_lint: bool,
     no_test: bool,
@@ -73,6 +76,7 @@ pub struct Session {
 struct SessionState {
     model: String,
     files: Vec<PathBuf>,
+    urls: Vec<String>,
 }
 
 impl Session {
@@ -128,6 +132,8 @@ impl Session {
             mode,
             root,
             files: HashSet::new(),
+            urls: HashMap::new(),
+            images: HashMap::new(),
             state_path,
             no_lint,
             no_test,
@@ -143,6 +149,7 @@ impl Session {
             if let Ok(state) = serde_yaml::from_str::<SessionState>(&data) {
                 self.model_name = state.model;
                 self.files = state.files.into_iter().collect();
+                self.urls = state.urls.into_iter().map(|u| (u, String::new())).collect();
             }
         }
     }
@@ -151,6 +158,7 @@ impl Session {
         let state = SessionState {
             model: self.model_name.clone(),
             files: self.files.iter().cloned().collect(),
+            urls: self.urls.keys().cloned().collect(),
         };
         if let Ok(text) = serde_yaml::to_string(&state) {
             let _ = std::fs::write(&self.state_path, text);
@@ -209,7 +217,7 @@ impl Session {
 
     async fn handle_message(&mut self, message: String) -> Result<()> {
         if let Some(cmd) = command::parse(&message) {
-            let out = match self.handle_command(cmd) {
+            let out = match self.handle_command(cmd).await {
                 Ok(s) => s,
                 Err(err) => err.to_string(),
             };
@@ -254,7 +262,7 @@ impl Session {
         Ok(())
     }
 
-    fn handle_command(&mut self, cmd: Command) -> Result<String> {
+    async fn handle_command(&mut self, cmd: Command) -> Result<String> {
         let span = debug_span!("command", ?cmd);
         let _enter = span.enter();
         match cmd {
@@ -262,6 +270,7 @@ impl Session {
                 if paths.is_empty() {
                     return Err(anyhow!("no paths provided"));
                 }
+                let vision = self.model_name.to_lowercase().contains("vision");
                 for p in paths {
                     let abs = self.root.join(&p);
                     let canon = abs
@@ -271,10 +280,30 @@ impl Session {
                         return Err(anyhow!("path outside repository: {}", p.display()));
                     }
                     let rel = canon.strip_prefix(&self.root).unwrap().to_path_buf();
+                    if is_image(&canon) {
+                        if vision {
+                            self.images.insert(rel.clone(), String::new());
+                        } else {
+                            let text = ocr_image(&canon).await;
+                            self.images.insert(rel.clone(), text);
+                        }
+                    }
                     self.files.insert(rel);
                 }
                 self.save_state();
                 Ok("Files added".into())
+            }
+            Command::AddUrl(urls) => {
+                if urls.is_empty() {
+                    return Err(anyhow!("no urls provided"));
+                }
+                for url in urls {
+                    let (text, tokens) = crate::url::fetch(&url).await?;
+                    self.urls.insert(url.clone(), text);
+                    println!("Fetched {url} (~{tokens} tokens)");
+                }
+                self.save_state();
+                Ok("URLs added".into())
             }
             Command::Drop(paths) => {
                 if paths.is_empty() {
@@ -308,9 +337,10 @@ impl Session {
                 }
             }
             Command::Help => Ok(format!(
-                "Commands: /add, /drop, /model, /help\nActive model: {}\nFiles tracked: {}",
+                "Commands: /add, /add-url, /drop, /model, /help\nActive model: {}\nFiles tracked: {}\nURLs tracked: {}",
                 self.model_name,
-                self.files.len()
+                self.files.len(),
+                self.urls.len()
             )),
         }
     }
@@ -318,7 +348,24 @@ impl Session {
     async fn stream_reply_with_mode(&self, mode: Mode, message: String) -> Result<()> {
         let system_prompt = mode.system_prompt();
         debug!(mode=?mode, prompt=system_prompt);
-        let prompt = format!("{}\n{}", system_prompt, message);
+        let mut context = String::new();
+        for file in &self.files {
+            let path = self.root.join(file);
+            if let Ok(txt) = std::fs::read_to_string(&path) {
+                context.push_str(&format!("File: {}\n{}\n", file.display(), txt));
+            }
+        }
+        for (url, text) in &self.urls {
+            context.push_str(&format!("URL: {}\n{}\n", url, text));
+        }
+        for (img, text) in &self.images {
+            if text.is_empty() {
+                context.push_str(&format!("Image: {}\n", img.display()));
+            } else {
+                context.push_str(&format!("Image: {}\n{}\n", img.display(), text));
+            }
+        }
+        let prompt = format!("{}\n{}\n{}", system_prompt, context, message);
         let mut stream = self.provider.chat(prompt);
         let mut stdout = io::stdout();
         let ctrl_c = signal::ctrl_c();
@@ -351,6 +398,30 @@ impl Session {
         }
         Ok(())
     }
+}
+
+fn is_image(path: &std::path::Path) -> bool {
+    match path.extension().and_then(|s| s.to_str()) {
+        Some(ext) => matches!(
+            ext.to_lowercase().as_str(),
+            "png" | "jpg" | "jpeg" | "gif" | "bmp" | "webp"
+        ),
+        None => false,
+    }
+}
+
+async fn ocr_image(path: &std::path::Path) -> String {
+    if let Ok(out) = TokioCommand::new("tesseract")
+        .arg(path)
+        .arg("stdout")
+        .output()
+        .await
+    {
+        if out.status.success() {
+            return String::from_utf8_lossy(&out.stdout).to_string();
+        }
+    }
+    String::new()
 }
 
 #[cfg(test)]
@@ -467,27 +538,57 @@ mod tests {
 
         // add file
         let cmd = command::parse("/add file.txt").unwrap();
-        session.handle_command(cmd).unwrap();
+        session.handle_command(cmd).await.unwrap();
         assert!(session.files.contains(&PathBuf::from("file.txt")));
         let state = fs::read_to_string(dir.path().join(".aider.session")).unwrap();
         assert!(state.contains("file.txt"));
 
         // switch model
         let cmd = command::parse("/model mock2").unwrap();
-        session.handle_command(cmd).unwrap();
+        session.handle_command(cmd).await.unwrap();
         assert_eq!(session.model_name, "mock2");
 
         // help output
         let cmd = command::parse("/help").unwrap();
-        let out = session.handle_command(cmd).unwrap();
+        let out = session.handle_command(cmd).await.unwrap();
         assert!(out.contains("mock2"));
         assert!(out.contains("Files tracked: 1"));
 
         // drop file
         let cmd = command::parse("/drop file.txt").unwrap();
-        session.handle_command(cmd).unwrap();
+        session.handle_command(cmd).await.unwrap();
         assert!(session.files.is_empty());
         let state = fs::read_to_string(dir.path().join(".aider.session")).unwrap();
         assert!(!state.contains("file.txt"));
+    }
+
+    #[tokio::test]
+    async fn add_url_fetches_content() {
+        use httpmock::prelude::*;
+        let dir = tempfile::tempdir().unwrap();
+        let server = MockServer::start_async().await;
+        let _m = server.mock(|when, then| {
+            when.method(GET).path("/page");
+            then.status(200)
+                .body("<html><body><p>Hello</p></body></html>");
+        });
+        let provider = MockProvider::default();
+        let mut session = Session::with_provider(
+            "mock".into(),
+            None,
+            None,
+            false,
+            Mode::Code,
+            false,
+            false,
+            1,
+            None,
+            Box::new(provider),
+            dir.path().to_path_buf(),
+        );
+        let url = format!("{}{}", server.url(""), "/page");
+        let cmd = command::parse(&format!("/add-url {}", url)).unwrap();
+        session.handle_command(cmd).await.unwrap();
+        assert!(session.urls.contains_key(&url));
     }
 }

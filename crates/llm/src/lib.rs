@@ -34,7 +34,7 @@ pub mod openai;
 pub mod mock {
     use super::*;
 
-    #[derive(Clone)]
+    #[derive(Clone, Default)]
     pub struct MockProvider {
         tokens: Option<Vec<String>>,
         usage: Usage,
@@ -49,15 +49,6 @@ pub mod mock {
                     cost: 0.0,
                 },
                 tokens: Some(tokens),
-            }
-        }
-    }
-
-    impl Default for MockProvider {
-        fn default() -> Self {
-            Self {
-                tokens: None,
-                usage: Usage::default(),
             }
         }
     }

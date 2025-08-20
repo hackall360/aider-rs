@@ -143,7 +143,7 @@ class _ChatPageState extends State<ChatPage> {
   final List<_Message> _messages = [];
   StreamSubscription? _sub;
   TextEditingController? _inputController;
-  static const _commands = ['/add', '/drop', '/help'];
+  static const _commands = ['/add', '/add-url', '/drop', '/help'];
 
   @override
   void initState() {
