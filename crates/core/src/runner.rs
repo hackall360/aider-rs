@@ -130,10 +130,19 @@ pub async fn apply_with_runner(
     runner: &dyn Runner,
     file: &Path,
     change_request: &str,
-    commit_message: &str,
+    commit_message: Option<&str>,
+    autocommit: bool,
     opts: RunOptions,
 ) -> Result<Vec<CommandResult>> {
-    crate::apply_diff_edit(provider, repo, file, change_request, commit_message).await?;
+    crate::apply_diff_edit(
+        provider,
+        repo,
+        file,
+        change_request,
+        commit_message,
+        autocommit,
+    )
+    .await?;
     let mut attempts = 0;
     loop {
         let results = runner.run(opts.no_lint, opts.no_test)?;
@@ -153,6 +162,14 @@ pub async fn apply_with_runner(
             summary,
             file.display(),
         );
-        crate::apply_diff_edit(provider, repo, file, &fix_request, "auto-fix").await?;
+        crate::apply_diff_edit(
+            provider,
+            repo,
+            file,
+            &fix_request,
+            Some("auto-fix"),
+            autocommit,
+        )
+        .await?;
     }
 }

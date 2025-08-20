@@ -80,7 +80,8 @@ async fn auto_fix_rust_runner() -> Result<()> {
         &runner,
         &file_rel,
         "introduce bug",
-        "bug",
+        Some("bug"),
+        true,
         opts,
     )
     .await?;
