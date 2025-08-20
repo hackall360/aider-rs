@@ -35,6 +35,10 @@ struct Args {
     #[arg(long)]
     no_test: bool,
 
+    /// Do not automatically commit changes
+    #[arg(long)]
+    no_autocommit: bool,
+
     /// Maximum number of automatic fix attempts
     #[arg(long, default_value_t = 1)]
     max_fix_attempts: u32,
@@ -87,6 +91,7 @@ async fn main() -> Result<()> {
         mode,
         args.no_lint,
         args.no_test,
+        args.no_autocommit,
         args.max_fix_attempts,
         voice,
     );

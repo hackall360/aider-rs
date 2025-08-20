@@ -83,3 +83,45 @@ class UndoButton extends StatelessWidget {
   }
 }
 
+class CommitMessageDialog extends StatefulWidget {
+  final String initialMessage;
+  final void Function(String message) onAccept;
+  const CommitMessageDialog(
+      {super.key, required this.initialMessage, required this.onAccept});
+
+  @override
+  State<CommitMessageDialog> createState() => _CommitMessageDialogState();
+}
+
+class _CommitMessageDialogState extends State<CommitMessageDialog> {
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController(text: widget.initialMessage);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Commit Message'),
+      content: TextField(
+        controller: controller,
+        maxLines: 3,
+        decoration: const InputDecoration(border: OutlineInputBorder()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => setState(() {}),
+          child: const Text('Edit'),
+        ),
+        TextButton(
+          onPressed: () => widget.onAccept(controller.text),
+          child: const Text('Accept'),
+        ),
+      ],
+    );
+  }
+}
+

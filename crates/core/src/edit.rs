@@ -8,7 +8,7 @@ use tokio_stream::StreamExt;
 
 use aider_llm::{ChatChunk, ModelProvider};
 
-use crate::GitRepo;
+use crate::{generate_commit_message, GitRepo};
 
 /// Apply a diff-based edit by asking the model to return a unified diff.
 ///
@@ -20,7 +20,8 @@ pub async fn apply_diff_edit(
     repo: &GitRepo,
     file: &Path,
     change_request: &str,
-    commit_message: &str,
+    commit_message: Option<&str>,
+    autocommit: bool,
 ) -> Result<String> {
     let prompt = format!(
         "Apply the following changes to `{}`:\n{}\nReturn a unified diff inside triple backticks.",
@@ -39,16 +40,30 @@ pub async fn apply_diff_edit(
     let diff_text = match extract_fenced_code(&output) {
         Ok(t) => t,
         Err(_) => {
-            return apply_whole_file_edit(provider, repo, file, change_request, commit_message)
-                .await;
+            return apply_whole_file_edit(
+                provider,
+                repo,
+                file,
+                change_request,
+                commit_message,
+                autocommit,
+            )
+            .await;
         }
     };
 
     let patch = match Patch::from_str(&diff_text) {
         Ok(p) => p,
         Err(_) => {
-            return apply_whole_file_edit(provider, repo, file, change_request, commit_message)
-                .await;
+            return apply_whole_file_edit(
+                provider,
+                repo,
+                file,
+                change_request,
+                commit_message,
+                autocommit,
+            )
+            .await;
         }
     };
 
@@ -57,15 +72,28 @@ pub async fn apply_diff_edit(
     let updated = match apply(&original, &patch) {
         Ok(u) => u,
         Err(_) => {
-            return apply_whole_file_edit(provider, repo, file, change_request, commit_message)
-                .await;
+            return apply_whole_file_edit(
+                provider,
+                repo,
+                file,
+                change_request,
+                commit_message,
+                autocommit,
+            )
+            .await;
         }
     };
 
     fs::write(&full_path, updated)?;
     let diff = repo.diff_unstaged()?;
     repo.stage(file)?;
-    repo.commit(commit_message)?;
+    if autocommit {
+        let message = match commit_message {
+            Some(m) => m.to_string(),
+            None => generate_commit_message(Some(provider), repo).await?,
+        };
+        repo.commit(&message)?;
+    }
     Ok(diff)
 }
 
@@ -80,7 +108,8 @@ pub async fn apply_whole_file_edit(
     repo: &GitRepo,
     file: &Path,
     change_request: &str,
-    commit_message: &str,
+    commit_message: Option<&str>,
+    autocommit: bool,
 ) -> Result<String> {
     let prompt = format!(
         "Rewrite the file `{}` to satisfy this request:\n{}\nReturn the full contents of the file inside triple backticks.",
@@ -99,7 +128,13 @@ pub async fn apply_whole_file_edit(
     fs::write(&full_path, contents)?;
     let diff = repo.diff_unstaged()?;
     repo.stage(file)?;
-    repo.commit(commit_message)?;
+    if autocommit {
+        let message = match commit_message {
+            Some(m) => m.to_string(),
+            None => generate_commit_message(Some(provider), repo).await?,
+        };
+        repo.commit(&message)?;
+    }
     Ok(diff)
 }
 
@@ -147,7 +182,8 @@ mod tests {
             &git,
             &file_rel,
             "replace contents",
-            "update file",
+            Some("update file"),
+            true,
         )
         .await?;
 
@@ -181,7 +217,8 @@ mod tests {
             &git,
             &file_rel,
             "replace contents",
-            "update file",
+            Some("update file"),
+            true,
         )
         .await?;
 
@@ -252,7 +289,8 @@ mod tests {
             &git,
             &file_rel,
             "replace contents",
-            "update file",
+            Some("update file"),
+            true,
         )
         .await?;
 
