@@ -29,7 +29,12 @@ pub trait ModelProvider: Send + Sync {
 
 pub mod anthropic;
 pub mod go_proxy;
+pub mod llm;
+pub mod models;
 pub mod openai;
+pub mod openrouter;
+pub mod sendchat;
+pub mod urls;
 
 pub mod mock {
     use super::*;
