@@ -11,6 +11,8 @@ pub mod repo;
 pub mod repomap;
 pub mod watch;
 
+pub use coders::{system_prompt, CoderKind};
+
 #[derive(Error, Debug)]
 pub enum CoreError {
     #[error("http error: {0}")]
