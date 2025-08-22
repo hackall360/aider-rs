@@ -24,6 +24,7 @@ tree-sitter-rust = { workspace = true }
 tree-sitter-go = { workspace = true }
 tree-sitter-python = { workspace = true }
 diffy = { workspace = true }
+similar = { workspace = true }
 tera = { workspace = true }
 axum = { workspace = true }
 tonic = { workspace = true }
