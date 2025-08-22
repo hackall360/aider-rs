@@ -59,6 +59,10 @@ struct Args {
     #[arg(long, default_value = "code")]
     mode: String,
 
+    /// Optional shell command to run before starting
+    #[arg(long)]
+    run: Option<String>,
+
     /// Optional prompt to start the session
     #[arg()]
     prompt: Vec<String>,
@@ -83,6 +87,13 @@ async fn main() -> Result<()> {
     } else {
         None
     };
+
+    if let Some(cmd) = args.run {
+        let (_status, output) = aider_core::run_cmd(&cmd, None).await?;
+        if !output.is_empty() {
+            print!("{}", output);
+        }
+    }
     let mut session = aider_core::Session::new(
         args.model,
         prompt,

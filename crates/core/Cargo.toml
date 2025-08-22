@@ -35,6 +35,9 @@ scraper = { workspace = true }
 url = { workspace = true }
 cpal = "0.15"
 whisper-rs = "0.15"
+atty = "0.2"
+tempfile = "3"
+async-trait = "0.1"
 
 [dev-dependencies]
 tempfile = "3"
