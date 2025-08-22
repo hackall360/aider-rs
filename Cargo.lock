@@ -70,6 +70,7 @@ dependencies = [
  "scraper",
  "serde",
  "serde_yaml",
+ "similar",
  "tempfile",
  "tera",
  "thiserror 1.0.69",
