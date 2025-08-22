@@ -1,32 +1,22 @@
+use crate::run_cmd;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 /// Result of running a command.
 #[derive(Debug, Default, Clone)]
 pub struct CommandResult {
     pub command: String,
-    pub stdout: String,
-    pub stderr: String,
+    pub output: String,
     pub status: i32,
 }
 
-fn run_command(cmd: &mut Command, cwd: &Path) -> Result<CommandResult> {
-    let output = cmd.current_dir(cwd).output()?;
-    Ok(CommandResult {
-        command: format!("{:?}", cmd),
-        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-        status: output.status.code().unwrap_or_default(),
-    })
-}
-
 /// Generic interface for language-specific linters and test runners.
+#[async_trait::async_trait]
 pub trait Runner {
     /// Name of the runner implementation.
     fn name(&self) -> &str;
     /// Run lint and/or tests and return command results.
-    fn run(&self, no_lint: bool, no_test: bool) -> Result<Vec<CommandResult>>;
+    async fn run(&self, no_lint: bool, no_test: bool) -> Result<Vec<CommandResult>>;
 }
 
 /// Runner implementation for Rust projects using Cargo.
@@ -42,22 +32,31 @@ impl RustRunner {
     }
 }
 
+#[async_trait::async_trait]
 impl Runner for RustRunner {
     fn name(&self) -> &str {
         "rust"
     }
 
-    fn run(&self, no_lint: bool, no_test: bool) -> Result<Vec<CommandResult>> {
+    async fn run(&self, no_lint: bool, no_test: bool) -> Result<Vec<CommandResult>> {
         let mut results = Vec::new();
         if !no_lint {
-            let mut cmd = Command::new("cargo");
-            cmd.arg("clippy");
-            results.push(run_command(&mut cmd, &self.root)?);
+            let cmd = "cargo clippy";
+            let (status, output) = run_cmd(cmd, Some(&self.root)).await?;
+            results.push(CommandResult {
+                command: cmd.into(),
+                output,
+                status,
+            });
         }
         if !no_test {
-            let mut cmd = Command::new("cargo");
-            cmd.arg("test");
-            results.push(run_command(&mut cmd, &self.root)?);
+            let cmd = "cargo test";
+            let (status, output) = run_cmd(cmd, Some(&self.root)).await?;
+            results.push(CommandResult {
+                command: cmd.into(),
+                output,
+                status,
+            });
         }
         Ok(results)
     }
@@ -76,22 +75,31 @@ impl JsRunner {
     }
 }
 
+#[async_trait::async_trait]
 impl Runner for JsRunner {
     fn name(&self) -> &str {
         "javascript"
     }
 
-    fn run(&self, no_lint: bool, no_test: bool) -> Result<Vec<CommandResult>> {
+    async fn run(&self, no_lint: bool, no_test: bool) -> Result<Vec<CommandResult>> {
         let mut results = Vec::new();
         if !no_test {
-            let mut cmd = Command::new("npm");
-            cmd.arg("test");
-            results.push(run_command(&mut cmd, &self.root)?);
+            let cmd = "npm test";
+            let (status, output) = run_cmd(cmd, Some(&self.root)).await?;
+            results.push(CommandResult {
+                command: cmd.into(),
+                output,
+                status,
+            });
         }
         if !no_lint {
-            let mut cmd = Command::new("npm");
-            cmd.arg("run").arg("lint");
-            results.push(run_command(&mut cmd, &self.root)?);
+            let cmd = "npm run lint";
+            let (status, output) = run_cmd(cmd, Some(&self.root)).await?;
+            results.push(CommandResult {
+                command: cmd.into(),
+                output,
+                status,
+            });
         }
         Ok(results)
     }
@@ -145,7 +153,7 @@ pub async fn apply_with_runner(
     .await?;
     let mut attempts = 0;
     loop {
-        let results = runner.run(opts.no_lint, opts.no_test)?;
+        let results = runner.run(opts.no_lint, opts.no_test).await?;
         let failed = results.iter().find(|r| r.status != 0);
         if failed.is_none() {
             return Ok(results);
@@ -155,7 +163,7 @@ pub async fn apply_with_runner(
             return Ok(results);
         }
         let failure = failed.unwrap();
-        let summary = summarize_output(&failure.stderr, 20, failure.status);
+        let summary = summarize_output(&failure.output, 20, failure.status);
         let fix_request = format!(
             "The following run of `{}` failed:\n{}\nPlease fix the code in {} so that the run succeeds.",
             failure.command,
