@@ -1,5 +1,6 @@
 use anyhow::Result;
 use atty::Stream;
+use std::env;
 use std::path::Path;
 use tokio::process::Command;
 
@@ -19,7 +20,10 @@ pub async fn run_cmd(command: &str, cwd: Option<&Path>) -> Result<(i32, String)>
     }
 
     // Interactive when both stdin and stdout are TTYs.
-    if atty::is(Stream::Stdin) && atty::is(Stream::Stdout) {
+    if env::var("AIDER_FORCE_CAPTURE").is_err()
+        && atty::is(Stream::Stdin)
+        && atty::is(Stream::Stdout)
+    {
         let status = cmd
             .stdin(std::process::Stdio::inherit())
             .stdout(std::process::Stdio::inherit())
@@ -46,7 +50,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_run_cmd_echo() {
+        env::set_var("AIDER_FORCE_CAPTURE", "1");
         let (status, output) = run_cmd("echo hello", None).await.unwrap();
+        env::remove_var("AIDER_FORCE_CAPTURE");
         assert_eq!(status, 0);
         assert_eq!(output.trim(), "hello");
     }

@@ -95,7 +95,7 @@ impl VoiceTranscriber {
     }
 }
 
-fn resample_to_16k(input: &[f32], sample_rate: u32) -> Vec<f32> {
+pub(crate) fn resample_to_16k(input: &[f32], sample_rate: u32) -> Vec<f32> {
     if sample_rate == 16000 {
         return input.to_vec();
     }
@@ -114,7 +114,7 @@ fn resample_to_16k(input: &[f32], sample_rate: u32) -> Vec<f32> {
     out
 }
 
-fn trim_silence(samples: &[f32], threshold: f32) -> Vec<f32> {
+pub(crate) fn trim_silence(samples: &[f32], threshold: f32) -> Vec<f32> {
     if samples.is_empty() {
         return Vec::new();
     }
@@ -128,4 +128,23 @@ fn trim_silence(samples: &[f32], threshold: f32) -> Vec<f32> {
         .map(|i| i + 1)
         .unwrap_or(samples.len());
     samples[start..end].to_vec()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trims_leading_and_trailing_silence() {
+        let samples = [0.0, 0.0, 0.5, 0.0];
+        let trimmed = trim_silence(&samples, 0.1);
+        assert_eq!(trimmed, vec![0.5]);
+    }
+
+    #[test]
+    fn resamples_to_expected_length() {
+        let input = vec![0.0, 1.0, 0.0, -1.0];
+        let output = resample_to_16k(&input, 8000);
+        assert_eq!(output.len(), 8);
+    }
 }
