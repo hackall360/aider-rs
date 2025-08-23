@@ -37,6 +37,7 @@ dependencies = [
  "clap",
  "ignore",
  "notify",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",

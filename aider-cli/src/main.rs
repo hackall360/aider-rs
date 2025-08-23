@@ -1,7 +1,10 @@
 mod analytics;
 mod args;
+mod commands;
+mod help_patterns;
 mod history;
 mod prompts;
+mod reasoning;
 mod repo;
 mod repomap;
 mod resources;
@@ -97,6 +100,14 @@ fn run() -> Result<()> {
             })
         );
     }
+
+    // Demonstrate special command detection and reasoning tag handling.
+    if commands::is_special_command("/ask how are you?") {
+        info!("special command detected");
+    }
+    let cleaned = reasoning::remove_reasoning_content("<tag>secret</tag> answer", Some("tag"));
+    info!(%cleaned, "reasoning cleaned");
+    info!(patterns = help_patterns::EXCLUDE_WEBSITE_PATS.len(), "loaded help patterns");
 
     // Start file watching in the background.
     let _watcher = watch::watch(&std::env::current_dir()?)?;
