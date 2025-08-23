@@ -4354,9 +4354,6 @@
     aider/models.py:
       Paul Gauthier: 12
       Paul Gauthier (aider): 9
-    aider/onboarding.py:
-      Paul Gauthier: 44
-      Paul Gauthier (aider): 389
     aider/queries/tree-sitter-languages/scala-tags.scm:
       Vasil Markoukin: 65
     aider/repo.py:
@@ -4396,8 +4393,6 @@
     tests/basic/test_main.py:
       Paul Gauthier: 15
       Paul Gauthier (aider): 199
-    tests/basic/test_onboarding.py:
-      Paul Gauthier (aider): 439
     tests/basic/test_repomap.py:
       Vasil Markoukin: 3
     tests/basic/test_ssl_verification.py:
@@ -4686,8 +4681,6 @@
       Lih Chen: 15
       Paul Gauthier: 16
       Paul Gauthier (aider): 12
-    aider/onboarding.py:
-      Paul Gauthier: 2
     aider/openrouter.py:
       Paul Gauthier (aider): 120
     aider/repo.py:
@@ -4717,8 +4710,6 @@
       Paul Gauthier (aider): 28
     tests/basic/test_models.py:
       Paul Gauthier (aider): 2
-    tests/basic/test_onboarding.py:
-      Paul Gauthier (aider): 5
     tests/basic/test_openrouter.py:
       Paul Gauthier (aider): 73
   grand_total:
