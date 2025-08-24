@@ -1,4 +1,9 @@
+mod analytics;
+mod commands;
+
 use aider_core::Mode;
+use aider_utils::Config;
+use analytics::Analytics;
 use anyhow::Result;
 use clap::Parser;
 
@@ -85,11 +90,25 @@ async fn main() -> Result<()> {
     }
     let _ = args.yes;
     aider_core::init_tracing()?;
+
+    let data_dir = Config::data_dir();
+    let _ = std::fs::create_dir_all(&data_dir);
+    let mut analytics = Analytics::new(data_dir.join("analytics.yaml"));
+    analytics.record("start");
+
     let prompt = if args.prompt.is_empty() {
         None
     } else {
         Some(args.prompt.join(" "))
     };
+
+    if let Some(ref p) = prompt {
+        if commands::is_special_command(p) {
+            if let Some(cmd) = commands::extract_command(p) {
+                println!("special command detected: {}", cmd);
+            }
+        }
+    }
 
     let mode: Mode = args.mode.parse().unwrap_or_default();
     let voice = if args.voice {

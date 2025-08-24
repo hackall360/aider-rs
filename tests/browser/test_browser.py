@@ -1,33 +1,29 @@
 import os
+import subprocess
 import unittest
-from unittest.mock import patch
-
-from aider.main import main
 
 
 class TestBrowser(unittest.TestCase):
-    @patch("aider.main.launch_gui")
-    def test_browser_flag_imports_streamlit(self, mock_launch_gui):
-        os.environ["AIDER_ANALYTICS"] = "false"
-
-        # Run main with --browser and --yes flags
-        main(["--browser", "--yes"])
-
-        # Check that launch_gui was called
-        mock_launch_gui.assert_called_once()
-
-        # Try to import streamlit
-        try:
-            import streamlit  # noqa: F401
-
-            streamlit_imported = True
-        except ImportError:
-            streamlit_imported = False
-
-        # Assert that streamlit was successfully imported
-        self.assertTrue(
-            streamlit_imported, "Streamlit should be importable after running with --browser flag"
+    def test_browser_flag_launches_gui(self):
+        env = os.environ.copy()
+        env["AIDER_TEST_GUI"] = "1"
+        result = subprocess.run(
+            [
+                "cargo",
+                "run",
+                "--quiet",
+                "-p",
+                "aider-cli",
+                "--",
+                "--browser",
+                "--yes",
+            ],
+            capture_output=True,
+            text=True,
+            env=env,
         )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("launch_gui_called", result.stdout)
 
 
 if __name__ == "__main__":

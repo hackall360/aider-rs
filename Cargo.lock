@@ -44,10 +44,13 @@ name = "aider-cli"
 version = "0.1.0"
 dependencies = [
  "aider-core",
+ "aider-utils",
  "anyhow",
  "assert_cmd",
  "clap",
  "predicates",
+ "serde",
+ "serde_yaml",
  "tokio",
 ]
 
