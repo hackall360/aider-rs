@@ -1,5 +1,6 @@
 pytest
 pytest-env
+pytest-cov
 pip-tools
 lox
 matplotlib
