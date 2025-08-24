@@ -21,6 +21,12 @@ jobs:
       - run: cargo fmt -- --check
       - run: cargo clippy -- -D warnings
       - run: cargo test
+      - run: cargo install cargo-tarpaulin
+      - run: cargo tarpaulin --manifest-path ../Cargo.toml --out Xml --output-dir coverage --fail-under 80
+      - uses: actions/upload-artifact@v3
+        with:
+          name: rust-coverage
+          path: aider-cli/coverage
 
   go:
     runs-on: ubuntu-latest
@@ -33,7 +39,16 @@ jobs:
         with:
           go-version: stable
       - run: go vet ./...
-      - run: go test ./...
+      - run: sudo apt-get update && sudo apt-get install -y bc
+      - run: go test -coverprofile=coverage.out ./...
+      - run: |
+          total=$(go tool cover -func=coverage.out | grep total: | awk '{print substr($3, 1, length($3)-1)}')
+          echo "coverage: $total%"
+          if (( $(echo "$total < 80" | bc -l) )); then exit 1; fi
+      - uses: actions/upload-artifact@v3
+        with:
+          name: go-coverage
+          path: go-shell/coverage.out
 
   dart:
     runs-on: ubuntu-latest
@@ -43,6 +58,18 @@ jobs:
         with:
           channel: stable
       - run: dart analyze dart_cli
-      - run: dart test dart_cli
+      - run: sudo apt-get update && sudo apt-get install -y lcov bc
+      - run: dart pub global activate coverage
+      - run: |
+          dart test --coverage=coverage
+          dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info
+          cov=$(awk -F: '/^LH:/{covered+=$2}/^LF:/{total+=$2} END{print covered*100/total}' coverage/lcov.info)
+          echo "coverage: $cov%"
+          if (( $(echo "$cov < 80" | bc -l) )); then exit 1; fi
+        working-directory: dart_cli
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dart-coverage
+          path: dart_cli/coverage
       - run: flutter analyze flutter_app
       - run: flutter test flutter_app
