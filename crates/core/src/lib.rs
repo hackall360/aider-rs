@@ -21,6 +21,7 @@ pub mod voice;
 pub mod watch;
 pub mod watch_prompts;
 pub mod models;
+pub mod udiff;
 pub use aider_llm::{mock::MockProvider, ModelProvider};
 pub use command::Command;
 pub use commit::generate_commit_message;
@@ -40,6 +41,7 @@ pub use onboarding::{check_openrouter_tier, try_to_select_default_model};
 pub use voice::VoiceTranscriber;
 pub use watch::FileWatcher;
 pub use watch_prompts::{watch_ask_prompt, watch_code_prompt};
+pub use udiff::find_diffs;
 
 pub fn init_tracing() -> Result<()> {
     let subscriber = FmtSubscriber::new();
