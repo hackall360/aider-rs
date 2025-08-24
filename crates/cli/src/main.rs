@@ -1,5 +1,6 @@
 mod analytics;
 mod commands;
+mod format_settings;
 
 use aider_core::Mode;
 use aider_utils::Config;
