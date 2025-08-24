@@ -198,8 +198,16 @@ This repository includes a Rust workspace defined in `Cargo.toml`.
 The workspace is organized into the following crates:
 
 - `crates/core` – shared library code and common dependencies.
-- `crates/cli` – command line interface relying on the core crate.
+- `crates/cli` – command line interface relying on the core create.
 - `crates/sidecar` – placeholder for a sidecar process.
 
 The workspace targets Rust edition 2021 and is configured for
 `cargo fmt` and `cargo clippy` via `rustfmt.toml` and `clippy.toml`.
+
+## Development setup
+
+Install development dependencies to work on the project:
+
+```bash
+pip install -r requirements/requirements-dev.txt
+```
