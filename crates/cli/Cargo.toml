@@ -5,6 +5,9 @@ edition = "2021"
 
 [dependencies]
 aider-core = { path = "../core" }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+aider-utils = { path = "../utils" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 tokio = { workspace = true }
