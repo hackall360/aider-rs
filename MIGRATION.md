@@ -18,3 +18,39 @@ invoke Rust sidecars such as `git_sidecar`.  When the variable is not set the
 original Python implementations act as a fallback during the transition.
 
 Progress on this migration should be updated here as milestones are completed.
+
+## Building Components
+
+```bash
+cargo build --workspace
+go build ./go-shell
+dart compile exe dart_cli/bin/aider.dart -o build/dart/aider
+```
+
+## Test Suite
+
+```bash
+cargo test --workspace
+go test ./...
+dart test
+```
+
+## Coverage
+
+Generate coverage reports for each language and compare them across releases to track progress:
+
+```bash
+# Rust coverage
+cargo llvm-cov --workspace --html --output-dir coverage/rust
+
+# Go coverage
+go test ./... -coverprofile=coverage/go.out
+go tool cover -html=coverage/go.out -o coverage/go.html
+
+# Dart coverage
+dart test --coverage=coverage/dart
+format_coverage --lcov --in coverage/dart --out coverage/dart/lcov.info
+
+# Compare coverage across releases
+diff -ru coverage/release-1 coverage/release-2
+```

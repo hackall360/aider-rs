@@ -105,20 +105,24 @@ Work with any LLM via its web chat interface. Aider streamlines copy/pasting cod
 ## Getting Started
 
 ```bash
-python -m pip install aider-install
-aider-install
+
+# Build the Rust command line interface
+cargo install --path aider-cli
+
+# Use the compiled binary
+aider-cli
 
 # Change directory into your codebase
 cd /to/your/project
 
 # DeepSeek
-aider --model deepseek --api-key deepseek=<key>
+aider-cli --model deepseek --api-key deepseek=<key>
 
 # Claude 3.7 Sonnet
-aider --model sonnet --api-key anthropic=<key>
+aider-cli --model sonnet --api-key anthropic=<key>
 
 # o3-mini
-aider --model o3-mini --api-key openai=<key>
+aider-cli --model o3-mini --api-key openai=<key>
 ```
 
 See the [installation instructions](https://aider.chat/docs/install.html) and [usage documentation](https://aider.chat/docs/usage.html) for more details.
@@ -204,10 +208,43 @@ The workspace is organized into the following crates:
 The workspace targets Rust edition 2021 and is configured for
 `cargo fmt` and `cargo clippy` via `rustfmt.toml` and `clippy.toml`.
 
-## Development setup
-
-Install development dependencies to work on the project:
+## Building Components
 
 ```bash
-pip install -r requirements/requirements-dev.txt
+# Rust CLI
+cargo build --workspace
+
+# Go utilities
+go build ./go-shell
+
+# Dart tools
+dart compile exe dart_cli/bin/aider.dart -o build/dart/aider
+```
+
+## Running Tests
+
+```bash
+cargo test --workspace
+go test ./...
+dart test
+```
+
+## Coverage Reports
+
+Generate coverage data for each language and compare results between releases:
+
+```bash
+# Rust coverage
+cargo llvm-cov --workspace --html --output-dir coverage/rust
+
+# Go coverage
+go test ./... -coverprofile=coverage/go.out
+go tool cover -html=coverage/go.out -o coverage/go.html
+
+# Dart coverage
+dart test --coverage=coverage/dart
+format_coverage --lcov --in coverage/dart --out coverage/dart/lcov.info
+
+# Compare coverage across releases
+diff -ru coverage/release-1 coverage/release-2
 ```
